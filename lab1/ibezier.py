@@ -20,13 +20,13 @@ def iplotpoly(inputA):
     def drawPolyline(vX, vY):
         plt.plot(vX, vY, color="magenta")
         u = np.linspace(0, 1, 50)
-        N = len(vX)
+        N = len(vX) - 1
         q = np.zeros((N + 1, 50, 2))
-        for i in range(N):
+        for i in range(N + 1):
             q[i, :, 0] = vX[i]
             q[i, :, 1] = vY[i]
-        for k in range(1, N):
-            for i in range(N - k):
+        for k in range(1, N + 1):
+            for i in range(N - k + 1):
                 q[i] = np.tile((1 - u), (2, 1)).T * q[i] + np.tile(u, (2, 1)).T * q[i+1]
         plt.plot(q[0, :, 0], q[0, :, 1], 'b-')
         plt.plot(vX, vY, 'ob', picker=True, pickradius=5)
