@@ -46,8 +46,8 @@ def iplotpoly(inputA):
         plt.cla()
 
         # Restore axes limits
-        plt.xlim([xL,xR])
-        plt.ylim([yB,yT])
+        plt.xlim([xL, xR])
+        plt.ylim([yB, yT])
 
         drawPolyline(vX, vY)
         outputPlotMessage("Select and move vertices")
@@ -116,34 +116,45 @@ def iplotpoly(inputA):
 
         return
 
-
     # Subdivide polyline
     def subdivideCallback(event):
         global vX, vY
 
-        if (len(vX) == 0): return
+        plt.subplot(111)
 
-        tempX = [ vX[0] ]
-        tempY = [ vY[0] ]
+        # Store current axes limits
+        xL, xR = ax.get_xlim()
+        yB, yT = ax.get_ylim()
 
-        i = 0;
-        while (i+1 < len(vX)):
-            tempX.append((vX[i] + vX[i+1])/2)
-            tempY.append((vY[i] + vY[i+1])/2)
+       # Bug: Clearing the axes resets the navigation toolbar so you can't return
+        #  to previous states.
+        # In particular, you can't return to the starting (0,0), (1,1) configuration.
+        plt.cla()
 
-            tempX.append(vX[i+1])
-            tempY.append(vY[i+1])
+        # Restore axes limits
+        plt.xlim([xL, xR])
+        plt.ylim([yB, yT])
 
-            i = i+1
+        c = .5
+        N = len(vX) - 1
+        q = np.zeros((N + 1, N + 1, 2))
+        q[0, :, 0] = vX
+        q[0, :, 1] = vY
+        for k in range(1, N + 1):
+            for i in range(0, N - k + 1):
+                q[k, i] = (1 - c) * q[k-1, i] + c * q[k-1, i+1]
+        drawPolyline(list(q[:, 0, 0]), list(q[:, 0, 1]))  # left curve
+        # right curve
+        vX_right = []
+        vY_right = []
+        for i in range(N + 1):
+            vX_right.append(q[N - i, i, 0])
+            vY_right.append(q[N - i, i, 1])
+        drawPolyline(vX_right, vY_right)
 
-        vX = tempX;
-        vY = tempY;
-        nump = len(vX)
-
-        redrawPlot(vX, vY)
+        plt.draw()
 
         return
-
 
     # Create TextBox containing output filename and
     #   output message text box
@@ -222,13 +233,25 @@ def iplotpoly(inputA):
 
         return
 
-
     # After polyline vertices are created or read, draw polyline
     #   and enable buttons and pick event
     def drawPolylineEnableButtonsPickEvent(vX, vY):
         global cid_pick
 
         plt.subplot(111)
+
+        # Store current axes limits
+        xL, xR = ax.get_xlim()
+        yB, yT = ax.get_ylim()
+
+        # Bug: Clearing the axes resets the navigation toolbar so you can't return
+        #  to previous states.
+        # In particular, you can't return to the starting (0,0), (1,1) configuration.
+        plt.cla()
+
+        # Restore axes limits
+        plt.xlim([xL, xR])
+        plt.ylim([yB, yT])
 
         outputPlotMessage("Select and move vertices")
         drawPolyline(vX,vY)
@@ -241,12 +264,20 @@ def iplotpoly(inputA):
 
         return
 
-
     # Add a vertex at (event.xdata, event.ydata)
     def addVertexCallback(event):
         global jv, vX, vY, cid_bpress
 
         plt.subplot(111)
+
+        # Store current axes limits
+        xL, xR = ax.get_xlim()
+        yB, yT = ax.get_ylim()
+
+        # Restore axes limits
+        plt.xlim([xL, xR])
+        plt.ylim([yB, yT])
+
         x=event.xdata
         y=event.ydata
 
@@ -269,7 +300,6 @@ def iplotpoly(inputA):
         else:
             # Disconnect button press callback before creating pick event
             fig.canvas.mpl_disconnect(cid_addVertexCallback)
-
             drawPolylineEnableButtonsPickEvent(vX, vY)
 
         return
@@ -339,8 +369,8 @@ def iplotpoly(inputA):
 
         A = np.loadtxt(filename, comments='#')
 
-        tempX = A[:,0]
-        tempY = A[:,1]
+        tempX = A[:, 0]
+        tempY = A[:, 1]
 
         vX = tempX.tolist()
         vY = tempY.tolist()
@@ -386,16 +416,16 @@ def iplotpoly(inputA):
         return
 
     fig, ax = plt.subplots(1,1,figsize=(12,8))
-    plt.xlim([0.0,1.0])
-    plt.ylim([0.0,1.0])
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.0])
 
     plt.subplots_adjust(right=0.9)
 
     outputSelectVertexLocation(0)
 
     # get plot lower left (LL) and upper right (UR)
-    axLL = ax.transData.transform((0,0));
-    axUR = ax.transData.transform((1,1));
+    axLL = ax.transData.transform((0,0))
+    axUR = ax.transData.transform((1,1))
 
     createButtons(0.91, 0.08, 0.05)
 
@@ -410,4 +440,5 @@ def iplotpoly(inputA):
 
     return
 
-iplotpoly(4)
+# iplotpoly("points.txt")
+iplotpoly(3)
