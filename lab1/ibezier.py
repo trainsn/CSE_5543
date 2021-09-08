@@ -7,6 +7,7 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button, TextBox
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 # Interactive polygon plot
 def iplotpoly(inputA):
@@ -20,6 +21,7 @@ def iplotpoly(inputA):
     # Draw a polygonal line through points vX to vY
     def drawPolyline(vX, vY):
         plt.plot(vX, vY, color="magenta")
+        global numv
 
         for l in range(0, numv - ndegree, ndegree):
             u = np.linspace(0, 1, 50)
@@ -99,23 +101,28 @@ def iplotpoly(inputA):
 
     # Subdivide polyline
     def subdivideCallback(event):
-        global vX, vY
+        global vX, vY, numv
 
-        c = .5
-        N = len(vX) - 1
-        q = np.zeros((N + 1, N + 1, 2))
-        q[0, :, 0] = vX
-        q[0, :, 1] = vY
-        for k in range(1, N + 1):
-            for i in range(0, N - k + 1):
-                q[k, i] = (1 - c) * q[k-1, i] + c * q[k-1, i+1]
-        # left curve
-        vX = list(q[:, 0, 0])
-        vY = list(q[:, 0, 1])
-        # right curve
-        for i in range(N + 1):
-            vX.append(q[N - i, i, 0])
-            vY.append(q[N - i, i, 1])
+        vX_new, vY_new = [vX[0]], [vY[0]]
+        for l in range(0, numv - ndegree, ndegree):
+            c = .5
+            N = ndegree
+            q = np.zeros((N + 1, N + 1, 2))
+            q[0, :, 0] = vX[l:l+N+1]
+            q[0, :, 1] = vY[l:l+N+1]
+            for k in range(1, N + 1):
+                for i in range(0, N - k + 1):
+                    q[k, i] = (1 - c) * q[k-1, i] + c * q[k-1, i+1]
+            # left curve
+            vX_new.extend(list(q[1:, 0, 0]))
+            vY_new.extend(list(q[1:, 0, 1]))
+            # right curve
+            for i in range(1, N + 1):
+                vX_new.append(q[N - i, i, 0])
+                vY_new.append(q[N - i, i, 1])
+
+        vX, vY = vX_new, vY_new
+        numv = len(vX)
         redrawPlot(vX, vY)
 
         return
@@ -148,14 +155,10 @@ def iplotpoly(inputA):
 
         else:
             # Save file
-            A = np.column_stack((vX,vY))
-
-            try:
-                np.savetxt(filename, A, header='iplotpoly vertices', comments='# ')
-            except:
-                outputSaveMessage('Unable to save to file ' + filename + '. Check write permissions.')
-                plt.draw()
-                return
+            f = open(filename, "w")
+            f.write("BEZIER\n{:d} {:d} {:d}\n".format(2, numv, ndegree))
+            for i in range(numv):
+                f.write("{:f} {:f}\n".format(vX[i], vY[i]))
 
             outputSaveMessage('Control points saved to file ' + filename)
             plt.draw()
@@ -325,17 +328,23 @@ def iplotpoly(inputA):
 
     # load vX and vY from a textfile
     def loadTextFile(filename):
-        global vX, vY, jv, numv
+        global vX, vY, jv, numv, ndegree
 
-        A = np.loadtxt(filename, comments='#')
+        vX, vY = [], []
+        with open(filename, "r") as fh:
+            assert(next(fh).strip("\r\n") == "BEZIER")
+            for line in fh:
+                if line[0] != "#":
+                    ndim, numv, ndegree = [int(tmp) for tmp in line.split()]
+                    break
+            assert(ndim == 2)
+            assert((numv - 1) % ndegree == 0)
+            for line in fh:
+                x, y = [float(tmp) for tmp in line.split()]
+                vX.append(x)
+                vY.append(y)
 
-        tempX = A[:, 0]
-        tempY = A[:, 1]
-
-        vX = tempX.tolist()
-        vY = tempY.tolist()
-
-        numv = len(vX)
+        assert(numv == len(vX))
         jv = numv
 
         return
@@ -356,15 +365,9 @@ def iplotpoly(inputA):
         jv = 0
         vX = []
         vY = []
-        ndegree = 1
+        ndegree = numv - 1
     elif (isinstance(inputA, str)):
-        try:
-            loadTextFile(inputA)
-        except:
-            print('Unable to open filename: ', inputA)
-            print('Check that file exists and that you have read permission.')
-            print('Exiting.')
-            return
+        loadTextFile(inputA)
     else:
         print('Illegal input: ', inputA)
         print('Exiting.')
@@ -401,5 +404,14 @@ def iplotpoly(inputA):
 
     return
 
-# iplotpoly("points.txt")
-iplotpoly(3)
+parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
+parser.add_argument("--inputA", required=True, type=str,
+                        help="input to the file")
+
+if __name__ == '__main__':
+    args = parser.parse_args()
+    if args.inputA.isdigit():
+        inputA = int(args.inputA)
+    else:
+        inputA = args.inputA
+    iplotpoly(inputA)
