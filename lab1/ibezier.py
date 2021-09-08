@@ -15,20 +15,24 @@ def iplotpoly(inputA):
     global default_output_filename, filename_textbox
     global cid_bpress, cid_pick
     global save_message_xloc;
+    global ndegree
 
     # Draw a polygonal line through points vX to vY
     def drawPolyline(vX, vY):
         plt.plot(vX, vY, color="magenta")
-        u = np.linspace(0, 1, 50)
-        N = len(vX) - 1
-        q = np.zeros((N + 1, 50, 2))
-        for i in range(N + 1):
-            q[i, :, 0] = vX[i]
-            q[i, :, 1] = vY[i]
-        for k in range(1, N + 1):
-            for i in range(N - k + 1):
-                q[i] = np.tile((1 - u), (2, 1)).T * q[i] + np.tile(u, (2, 1)).T * q[i+1]
-        plt.plot(q[0, :, 0], q[0, :, 1], 'b-')
+
+        for l in range(0, numv - ndegree, ndegree):
+            u = np.linspace(0, 1, 50)
+            N = ndegree
+            q = np.zeros((N + 1, 50, 2))
+            for i in range(N + 1):
+                q[i, :, 0] = vX[i+l]
+                q[i, :, 1] = vY[i+l]
+            for k in range(1, N + 1):
+                for i in range(N - k + 1):
+                    q[i] = np.tile((1 - u), (2, 1)).T * q[i] + np.tile(u, (2, 1)).T * q[i+1]
+            plt.plot(q[0, :, 0], q[0, :, 1], 'b-')
+
         plt.plot(vX, vY, 'ob', picker=True, pickradius=5)
         return
 
@@ -93,47 +97,9 @@ def iplotpoly(inputA):
 
     # CallbackS
 
-    # Rotate polyline 90 degrees clockwise
-    def rotateClockwiseCallback(event):
-        global vX, vY
-
-        tempX = np.array(vX)
-        tempY = np.array(vY)
-
-        tempX = tempX - plot_center[0];
-        tempY = tempY - plot_center[1];
-
-        tempX2 = tempY;
-        tempY2 = -tempX;
-
-        tempX2 = tempX2 + plot_center[0];
-        tempY2 = tempY2 + plot_center[1];
-
-        vX = tempX2.tolist();
-        vY = tempY2.tolist();
-
-        redrawPlot(vX, vY)
-
-        return
-
     # Subdivide polyline
     def subdivideCallback(event):
         global vX, vY
-
-        plt.subplot(111)
-
-        # Store current axes limits
-        xL, xR = ax.get_xlim()
-        yB, yT = ax.get_ylim()
-
-       # Bug: Clearing the axes resets the navigation toolbar so you can't return
-        #  to previous states.
-        # In particular, you can't return to the starting (0,0), (1,1) configuration.
-        plt.cla()
-
-        # Restore axes limits
-        plt.xlim([xL, xR])
-        plt.ylim([yB, yT])
 
         c = .5
         N = len(vX) - 1
@@ -143,16 +109,14 @@ def iplotpoly(inputA):
         for k in range(1, N + 1):
             for i in range(0, N - k + 1):
                 q[k, i] = (1 - c) * q[k-1, i] + c * q[k-1, i+1]
-        drawPolyline(list(q[:, 0, 0]), list(q[:, 0, 1]))  # left curve
+        # left curve
+        vX = list(q[:, 0, 0])
+        vY = list(q[:, 0, 1])
         # right curve
-        vX_right = []
-        vY_right = []
         for i in range(N + 1):
-            vX_right.append(q[N - i, i, 0])
-            vY_right.append(q[N - i, i, 1])
-        drawPolyline(vX_right, vY_right)
-
-        plt.draw()
+            vX.append(q[N - i, i, 0])
+            vY.append(q[N - i, i, 1])
+        redrawPlot(vX, vY)
 
         return
 
@@ -166,7 +130,6 @@ def iplotpoly(inputA):
         plt.draw()
 
         return
-
 
     # Save control points to a file
     def saveCallback(event):
@@ -199,7 +162,6 @@ def iplotpoly(inputA):
 
         return
 
-
     # Enable button
     def enable_button(button, buttonCallback):
 
@@ -212,7 +174,6 @@ def iplotpoly(inputA):
 
         return
 
-
     # Enable buttons by linking to callbacks
     def enable_all_buttons():
         global subdivide_button
@@ -221,7 +182,6 @@ def iplotpoly(inputA):
         global default_output_filename
 
         enable_button(subdivide_button, subdivideCallback)
-        enable_button(rotateCW_button, rotateClockwiseCallback)
         enable_button(save_button, saveCallback)
 
         # BUG: Button color does not change until the mouse is moved.
@@ -396,6 +356,7 @@ def iplotpoly(inputA):
         jv = 0
         vX = []
         vY = []
+        ndegree = 1
     elif (isinstance(inputA, str)):
         try:
             loadTextFile(inputA)
