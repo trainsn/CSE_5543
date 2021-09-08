@@ -4,7 +4,7 @@ run the command:
 ``` 
 python ibezier.py --inputA {param}
 ``` 
-If the input parameter is ab interger n, the user can interactively specify the location of the n control points by drawing on
+If the input parameter is an interger n, the user can interactively specify the location of the n control points by drawing on
 a window region with a mouse, and the Bezier curve has degree n − 1.
 
 Using the mouse, the user is able to interactively select any control point and move it. When any control point is moved, the program can automatically recompute and redraw
