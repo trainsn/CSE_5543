@@ -17,12 +17,14 @@ def iplotpoly(mode, inputA):
     global cid_bpress, cid_pick
     global save_message_xloc
     global ndegree
+    global knots
 
     # Draw a polygonal line through points vX to vY
     def drawPolyline(vX, vY):
         plt.plot(vX, vY, color="magenta")
         plt.plot(vX, vY, 'ob', picker=True, pickradius=5)
         global numv, ndegree
+        global knots
         k = ndegree + 1
         knots = [0 for i in range(k)]
         knots.extend([i-k+1 for i in range(k, numv)])
@@ -148,6 +150,7 @@ def iplotpoly(mode, inputA):
     # Save control points to a file
     def saveCallback(event):
         global vX, vY
+        global knots
 
         if (len(vX) == 0): return
 
@@ -163,7 +166,10 @@ def iplotpoly(mode, inputA):
         else:
             # Save file
             f = open(filename, "w")
-            f.write("BEZIER\n{:d} {:d} {:d}\n".format(2, numv, ndegree))
+            f.write("BSPLINE\n{:d} {:d} {:d}\n".format(2, numv, ndegree))
+            for knot in knots:
+                f.write("{:d} ".format(knot))
+            f.write("\n")
             for i in range(numv):
                 f.write("{:f} {:f}\n".format(vX[i], vY[i]))
 
@@ -336,16 +342,17 @@ def iplotpoly(mode, inputA):
     # load vX and vY from a textfile
     def loadTextFile(filename):
         global vX, vY, jv, numv, ndegree
+        global knots
 
         vX, vY = [], []
         with open(filename, "r") as fh:
-            assert(next(fh).strip("\r\n") == "BEZIER")
+            assert(next(fh).strip("\r\n") == "BSPLINE")
             for line in fh:
                 if line[0] != "#":
                     ndim, numv, ndegree = [int(tmp) for tmp in line.split()]
                     break
             assert(ndim == 2)
-            assert((numv - 1) % ndegree == 0)
+            knots = [int(tmp) for tmp in next(fh).split()]
             for line in fh:
                 x, y = [float(tmp) for tmp in line.split()]
                 vX.append(x)
@@ -372,10 +379,10 @@ def iplotpoly(mode, inputA):
         jv = 0
         vX = []
         vY = []
-    elif (isinstance(inputA, str)):
+    elif mode == "file":
         loadTextFile(inputA)
     else:
-        print('Illegal input: ', inputA)
+        print('Only support mode integer and file')
         print('Exiting.')
         return
 
