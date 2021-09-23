@@ -10,32 +10,39 @@ from matplotlib.widgets import Button, TextBox
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 # Interactive polygon plot
-def iplotpoly(inputA):
+def iplotpoly(mode, inputA):
     global vX, vY, plot_center, text_message, save_message
     global jv, iv_selected, numv
     global default_output_filename, filename_textbox
     global cid_bpress, cid_pick
-    global save_message_xloc;
+    global save_message_xloc
     global ndegree
 
     # Draw a polygonal line through points vX to vY
     def drawPolyline(vX, vY):
         plt.plot(vX, vY, color="magenta")
-        global numv
-
-        for l in range(0, numv - ndegree, ndegree):
-            u = np.linspace(0, 1, 50)
-            N = ndegree
-            q = np.zeros((N + 1, 50, 2))
-            for i in range(N + 1):
-                q[i, :, 0] = vX[i+l]
-                q[i, :, 1] = vY[i+l]
-            for k in range(1, N + 1):
-                for i in range(N - k + 1):
-                    q[i] = np.tile((1 - u), (2, 1)).T * q[i] + np.tile(u, (2, 1)).T * q[i+1]
-            plt.plot(q[0, :, 0], q[0, :, 1], 'b-')
-
         plt.plot(vX, vY, 'ob', picker=True, pickradius=5)
+        global numv, ndegree
+        k = ndegree + 1
+        knots = [0 for i in range(k)]
+        knots.extend([i-k+1 for i in range(k, numv)])
+        knots.extend([numv-k+1 for i in range(numv, numv+k)])
+        knots = np.array(knots)
+
+        for j in range(k-1, numv):
+            q = np.zeros((k, 50, 2))
+            u = np.linspace(0, 1, 50) * (knots[j+1] - knots[j]) + knots[j]
+            for i in range(j-k+1, j+1):
+                q[i - (j-k+1), :, 0] = vX[i]
+                q[i - (j-k+1), :, 1] = vY[i]
+            for r in range(1, k):
+                h = k - r
+                # construct control points for order h spline
+                for i in range(j, j-h, -1):
+                    alpha = (u - knots[i]) / (knots[i+h] - knots[i])
+                    q[i - (j-k+1)] = (1.0 - alpha)[:, np.newaxis] * q[i-1 - (j-k+1)] + alpha[:, np.newaxis] * q[i - (j-k+1)]
+            plt.plot(q[k-1, :, 0], q[k-1, :, 1], 'b-')
+
         return
 
     # Redraw the polyline plot
@@ -217,7 +224,7 @@ def iplotpoly(inputA):
         plt.ylim([yB, yT])
 
         outputPlotMessage("Select and move vertices")
-        drawPolyline(vX,vY)
+        drawPolyline(vX, vY)
         plt.draw()
 
         cid_pick = fig.canvas.mpl_connect('pick_event', pickPointCallback)
@@ -360,12 +367,11 @@ def iplotpoly(inputA):
 
     # If inputA is an integer, set number of vertices to inputA
     # If inputA is a string, read control points from inputA
-    if (isinstance(inputA, int)):
-        numv = inputA
+    if mode == "integer":
+        numv, ndegree = [int(item) for item in inputA.split(",")]
         jv = 0
         vX = []
         vY = []
-        ndegree = numv - 1
     elif (isinstance(inputA, str)):
         loadTextFile(inputA)
     else:
@@ -405,13 +411,11 @@ def iplotpoly(inputA):
     return
 
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
+parser.add_argument("--mode", required=True, type=str,
+                        help="program mode: integer or file")
 parser.add_argument("--inputA", required=True, type=str,
                         help="input to the file")
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    if args.inputA.isdigit():
-        inputA = int(args.inputA)
-    else:
-        inputA = args.inputA
-    iplotpoly(inputA)
+    iplotpoly(args.mode, args.inputA)
