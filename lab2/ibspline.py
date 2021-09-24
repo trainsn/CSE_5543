@@ -1,6 +1,6 @@
 # Interactive polygonal line plot.
 # Interactively set polyline vertices or read vertices from a file.
-# Buttons to subdivide polygonal line or rotate polygonal line 90 degrees.
+# Buttons to add control points
 # Button to save vertices (control points) to a file.
 
 import sys
@@ -18,6 +18,7 @@ def iplotpoly(mode, inputA):
     global save_message_xloc
     global ndegree
     global knots
+    global add_status
 
     # Draw a polygonal line through points vX to vY
     def drawPolyline(vX, vY):
@@ -26,10 +27,6 @@ def iplotpoly(mode, inputA):
         global numv, ndegree
         global knots
         k = ndegree + 1
-        knots = [0 for i in range(k)]
-        knots.extend([i-k+1 for i in range(k, numv)])
-        knots.extend([numv-k+1 for i in range(numv, numv+k)])
-        knots = np.array(knots)
 
         for j in range(k-1, numv):
             q = np.zeros((k, 50, 2))
@@ -44,6 +41,35 @@ def iplotpoly(mode, inputA):
                     alpha = (u - knots[i]) / (knots[i+h] - knots[i])
                     q[i - (j-k+1)] = (1.0 - alpha)[:, np.newaxis] * q[i-1 - (j-k+1)] + alpha[:, np.newaxis] * q[i - (j-k+1)]
             plt.plot(q[k-1, :, 0], q[k-1, :, 1], 'b-')
+
+        return
+
+    # Add a control point by Boehm algorithm
+    def addControlPoint(iv):
+        global vX, vY, numv, ndegree
+        global knots
+        if iv < ndegree:
+            outputPlotMessage("Select and move vertices")
+            outputSaveMessage("For the selected control point q_h, h should be at least d")
+            return
+        q = np.zeros((numv + 1, 2))
+        k = ndegree + 1
+        # Keep first j − k + 1 control points
+        q[:iv-k+2, 0] = np.array(vX[:iv-k+2])
+        q[:iv-k+2, 1] = np.array(vY[:iv-k+2])
+        # Keep last n − j + 1 control points
+        q[iv+1:, 0] = np.array(vX[iv:])
+        q[iv+1:, 1] = np.array(vY[iv:])
+        # Replace k − 2 control points from q_{j−k+2} to q_{j−1} with k − 1 new control points
+        t = (knots[iv] + knots[iv+1]) / 2.
+        i = np.arange(iv-k+2, iv+1, 1)
+        alpha = t - np.array(knots)[i] / (np.array(knots)[i+k-1] - np.array(knots)[i])
+        q[i, 0] = (1 - alpha) * np.array(vX)[i-1] + alpha * np.array(vX)[i]
+        q[i, 1] = (1 - alpha) * np.array(vY)[i-1] + alpha * np.array(vY)[i]
+        vX, vY = q[:, 0].tolist(), q[:, 1].tolist()
+        numv += 1
+        knots.insert(iv + 1, t)
+        redrawPlot(vX, vY)
 
         return
 
@@ -108,31 +134,14 @@ def iplotpoly(mode, inputA):
 
     # CallbackS
 
-    # Subdivide polyline
-    def subdivideCallback(event):
+    # add control points
+    def addcpCallback(event):
         global vX, vY, numv
+        global add_status
 
-        vX_new, vY_new = [vX[0]], [vY[0]]
-        for l in range(0, numv - ndegree, ndegree):
-            c = .5
-            N = ndegree
-            q = np.zeros((N + 1, N + 1, 2))
-            q[0, :, 0] = vX[l:l+N+1]
-            q[0, :, 1] = vY[l:l+N+1]
-            for k in range(1, N + 1):
-                for i in range(0, N - k + 1):
-                    q[k, i] = (1 - c) * q[k-1, i] + c * q[k-1, i+1]
-            # left curve
-            vX_new.extend(list(q[1:, 0, 0]))
-            vY_new.extend(list(q[1:, 0, 1]))
-            # right curve
-            for i in range(1, N + 1):
-                vX_new.append(q[N - i, i, 0])
-                vY_new.append(q[N - i, i, 1])
-
-        vX, vY = vX_new, vY_new
-        numv = len(vX)
-        redrawPlot(vX, vY)
+        outputPlotMessage("Select a existing control point for control pointing adding task")
+        clearSaveMessage()
+        add_status = True
 
         return
 
@@ -168,7 +177,7 @@ def iplotpoly(mode, inputA):
             f = open(filename, "w")
             f.write("BSPLINE\n{:d} {:d} {:d}\n".format(2, numv, ndegree))
             for knot in knots:
-                f.write("{:d} ".format(knot))
+                f.write("{:.2f} ".format(knot))
             f.write("\n")
             for i in range(numv):
                 f.write("{:f} {:f}\n".format(vX[i], vY[i]))
@@ -192,12 +201,12 @@ def iplotpoly(mode, inputA):
 
     # Enable buttons by linking to callbacks
     def enable_all_buttons():
-        global subdivide_button
+        global addcp_button
         global rotateCW_button
         global save_button
         global default_output_filename
 
-        enable_button(subdivide_button, subdivideCallback)
+        enable_button(addcp_button, addcpCallback)
         enable_button(save_button, saveCallback)
 
         # BUG: Button color does not change until the mouse is moved.
@@ -305,27 +314,32 @@ def iplotpoly(mode, inputA):
     # Pick and move a vertex
     def pickPointCallback(event):
         global iv_selected, cid_moveCallback
+        global add_status
 
-        if (len(event.ind) < 1): return
+        if len(event.ind) < 1:
+            return
 
         if (event.ind[0] >= 0) and (event.ind[0] < len(vX)):
             iv_selected = event.ind[0]
-            cid_moveCallback = fig.canvas.mpl_connect('button_release_event', moveVertexCallback)
-
+            if not add_status:
+                cid_moveCallback = fig.canvas.mpl_connect('button_release_event', moveVertexCallback)
+            else:
+                addControlPoint(iv_selected)
+                add_status = False
         return
 
     # Create buttons
     def createButtons(left_pos, button_width, button_height):
         global ax_rotateCW_button, rotateCW_button
-        global ax_subdivide_button, subdivide_button
+        global ax_addcp_button, addcp_button
         global ax_save_button, save_button
 
         disabled_color = 'dimgray'
 
-        ax_subdivide_button = plt.axes([left_pos, 0.8, button_width, button_height])
-        subdivide_button = Button(ax_subdivide_button, "Subdivide")
-        subdivide_button.color = disabled_color
-        subdivide_button.hovercolor = disabled_color
+        ax_addcp_button = plt.axes([left_pos, 0.8, button_width, button_height])
+        addcp_button = Button(ax_addcp_button, "Add CP")
+        addcp_button.color = disabled_color
+        addcp_button.hovercolor = disabled_color
 
         ax_rotateCW_button = plt.axes([left_pos, 0.7, button_width, button_height])
         rotateCW_button = Button(ax_rotateCW_button, "Rotate CW")
@@ -352,7 +366,7 @@ def iplotpoly(mode, inputA):
                     ndim, numv, ndegree = [int(tmp) for tmp in line.split()]
                     break
             assert(ndim == 2)
-            knots = [int(tmp) for tmp in next(fh).split()]
+            knots = [float(tmp) for tmp in next(fh).split()]
             for line in fh:
                 x, y = [float(tmp) for tmp in line.split()]
                 vX.append(x)
@@ -379,6 +393,10 @@ def iplotpoly(mode, inputA):
         jv = 0
         vX = []
         vY = []
+        k = ndegree + 1
+        knots = [0. for i in range(k)]
+        knots.extend([float(i-k+1) for i in range(k, numv)])
+        knots.extend([float(numv-k+1) for i in range(numv, numv+k)])
     elif mode == "file":
         loadTextFile(inputA)
     else:
@@ -392,7 +410,9 @@ def iplotpoly(mode, inputA):
         print('Exiting')
         return
 
-    fig, ax = plt.subplots(1,1,figsize=(12,8))
+    add_status = False
+
+    fig, ax = plt.subplots(1, 1, figsize=(12, 8))
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.0])
 
@@ -401,8 +421,8 @@ def iplotpoly(mode, inputA):
     outputSelectVertexLocation(0)
 
     # get plot lower left (LL) and upper right (UR)
-    axLL = ax.transData.transform((0,0))
-    axUR = ax.transData.transform((1,1))
+    axLL = ax.transData.transform((0, 0))
+    axUR = ax.transData.transform((1, 1))
 
     createButtons(0.91, 0.08, 0.05)
 
