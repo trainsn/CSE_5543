@@ -81,7 +81,6 @@ def sweepbspline(args):
 
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 parser.add_argument("--pathfile", required=True, type=str,
-
                         help="the name of a file containing the the path or trajectory of the sweep curve")
 parser.add_argument("--curvefile", required=True, type=str,
                         help="the name of a file containing the definitiion of an open B-spline curve that is “swept” along the pathline")
