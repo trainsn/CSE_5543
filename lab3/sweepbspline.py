@@ -64,14 +64,28 @@ def sweepbspline(args):
 
     q = alpha + beta
 
+    f = open(args.outfile, "w")
+    f.write("OFF\n{:d} {:d} 0\n".format(num_path_points * num_curve_points, (num_path_points - 1) * (num_curve_points - 1)))
+
+    for i in range(num_path_points):
+        for j in range(num_curve_points):
+            f.write("{:f} {:f} {:f}\n".format(q[i, j, 0], q[i, j, 1], q[i, j, 2]))
+
+    for i in range(num_path_points - 1):
+        for j in range(num_curve_points - 1):
+            f.write("4  {:d} {:d} {:d} {:d}\n".format(
+                i * num_curve_points + j, (i+1) * num_curve_points + j,
+                (i+1) * num_curve_points + j+1, i * num_curve_points + j+1))
+
     return
 
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 parser.add_argument("--pathfile", required=True, type=str,
+
                         help="the name of a file containing the the path or trajectory of the sweep curve")
 parser.add_argument("--curvefile", required=True, type=str,
                         help="the name of a file containing the definitiion of an open B-spline curve that is “swept” along the pathline")
-parser.add_argument("--outfile", required=True, type=str,
+parser.add_argument("--outfile", default="out.off", type=str,
                         help="the name of the output file")
 
 if __name__ == '__main__':
