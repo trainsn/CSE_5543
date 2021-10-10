@@ -51,8 +51,18 @@ def sweepbspline(args):
 
     pathY, pathZ = loadTextFile(args.pathfile)
     pathX = np.zeros_like(pathY)
+    alpha = np.hstack((pathX[:, np.newaxis], pathY[:, np.newaxis], pathZ[:, np.newaxis]))
+    num_path_points = alpha.shape[0]
     curveX, curveY = loadTextFile(args.curvefile)
     curveZ = np.zeros_like(curveX)
+    beta = np.hstack((curveX[:, np.newaxis], curveY[:, np.newaxis], curveZ[:, np.newaxis]))
+    beta = beta - beta[0]
+    num_curve_points = beta.shape[0]
+
+    alpha = np.tile(alpha[:, np.newaxis, :], (1, num_curve_points, 1))
+    beta = np.tile(beta[np.newaxis, :, :], (num_path_points, 1, 1))
+
+    q = alpha + beta
 
     return
 
