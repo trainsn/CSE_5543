@@ -2,7 +2,7 @@
 
 run the command:
 ``` 
-python ibezier.py --pathfile <pathfile> --curvefile <curvefile> --outfile <outfile>
+python ibezier.py --pathfile <pathfile> --curvefile <pathfile> --outfile <outfile>
 ``` 
 
 I use the format for the B-splines in files pathfile and curvefile in the instructions for Lab 2.
