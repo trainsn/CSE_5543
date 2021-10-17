@@ -2,10 +2,10 @@
 
 run the command:
 ``` 
-python ibezier.py --pathfile <pathfile> --curvefile <pathfile> --outfile <outfile>
+python bsplinesurf.py --infile1 <infile1> --infile2 <infile2> --outfile <outfile>
 ``` 
 
-I use the format for the B-splines in files pathfile and curvefile in the instructions for Lab 2.
+I use the format for the B-splines in files infile1 and infile2 in the instructions for Lab 2.
 Sample file text:
 ``` 
 BSPLINE

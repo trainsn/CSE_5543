@@ -60,22 +60,38 @@ def sweepbspline(args):
         if j == k2 - 1:
             q_hat = q_tmp[:, k2 - 1, :, :]
         else:
-            q_hat = np.concatenate((q_hat, q_tmp[:, k2 - 1, :, :]), axis=1)
+            q_hat = np.concatenate((q_hat, q_tmp[:, k2 - 1, :, :]), axis=1) # [numv1, nump2, 3]
 
+    for j in range(k1 - 1, numv1):
+        p_tmp = np.zeros((q_hat.shape[1], k1, 50, 3))
+        u = np.linspace(0, 1, 50) * (knots1[j + 1] - knots1[j]) + knots1[j]
+        for i in range(j - k1 + 1, j + 1):
+            p_tmp[:, i - (j - k1 + 1), :, :] = q_hat[i, :, :][:, np.newaxis, :]
+        for r in range(1, k1):
+            h = k1 - r
+            for i in range(j, j - h, - 1):
+                alpha = (u - knots1[i]) / (knots1[i + h] - knots1[i])
+                p_tmp[:, i - (j - k1 + 1)] = (1.0 - alpha)[np.newaxis, :, np.newaxis] * p_tmp[:, i - 1 - (j - k1 + 1)] + \
+                                             alpha[np.newaxis, :, np.newaxis] * p_tmp[:, i - (j - k1 + 1)]
+        if j == k1 - 1:
+            p = p_tmp[:, k1 - 1, :, :]
+        else:
+            p = np.concatenate((p, p_tmp[:, k1 - 1, :, :]), axis=1)
 
+    p = np.transpose(p, (1, 0, 2))
 
     f = open(args.outfile, "w")
-    f.write("OFF\n{:d} {:d} 0\n".format(numv1 * numv2, (numv1 - 1) * (numv2 - 1)))
+    f.write("OFF\n{:d} {:d} 0\n".format(p.shape[0] * p.shape[1], (p.shape[0] - 1) * (p.shape[1] - 1)))
 
-    for i in range(numv1):
-        for j in range(numv2):
-            f.write("{:f} {:f} {:f}\n".format(q[i, j, 0], q[i, j, 1], q[i, j, 2]))
+    for i in range(p.shape[0]):
+        for j in range(p.shape[1]):
+            f.write("{:f} {:f} {:f}\n".format(p[i, j, 0], p[i, j, 1], p[i, j, 2]))
 
-    for i in range(numv1 - 1):
-        for j in range(numv2 - 1):
+    for i in range(p.shape[0] - 1):
+        for j in range(p.shape[1] - 1):
             f.write("4  {:d} {:d} {:d} {:d}\n".format(
-                i * numv2 + j, (i + 1) * numv2 + j,
-                (i + 1) * numv2 + j + 1, i * numv2 + j + 1))
+                i * p.shape[1] + j, (i + 1) * p.shape[1] + j,
+                (i + 1) * p.shape[1] + j + 1, i * p.shape[1] + j + 1))
 
     return
 
