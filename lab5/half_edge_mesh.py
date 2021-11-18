@@ -39,7 +39,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 class VERTEX_BASE:
-
     ## Dimension = Number of coordinates.
     # - All vertices have the same dimension.
     _DIM = 3
@@ -65,9 +64,9 @@ class VERTEX_BASE:
         for k in range(0, self.NumHalfEdgesFrom()):
             half_edge = self.half_edge_from[k]
             if (half_edge.ToVertex()).Index() == iv:
-                return(half_edge)
+                return half_edge
 
-        return(None)
+        return None
 
     ## Count number of half edges with from vertex self
     #    and ToVertexIndex() iv.
@@ -105,7 +104,6 @@ class VERTEX_BASE:
         return s
 
     def __init__(self):
-
         ## Unique non-negative integer identifying the vertex.
         self.index = None
 
@@ -117,12 +115,11 @@ class VERTEX_BASE:
         ## Vertex coordinates.
         self.coord = []
 
-        for ic in range(0,self.Dimension()):
+        for ic in range(0, self.Dimension()):
             self.coord.append(0)
 
 
 class HALF_EDGE_BASE:
-
     def Index(self):
         return self.index
 
@@ -156,11 +153,11 @@ class HALF_EDGE_BASE:
 
     ## Return true if half edge is boundary half edge.
     def IsBoundary(self):
-        return(self == self.next_half_edge_around_edge)
+        return self == self.next_half_edge_around_edge
 
     ## Return cell containing half edge.
     def Cell(self):
-        return(self.cell)
+        return self.cell
 
     ## Count number of half edges around edge.
     def CountNumHalfEdgesAroundEdge(self):
@@ -178,12 +175,9 @@ class HALF_EDGE_BASE:
 
     ## Return true if half_edgeB has same endpoints as current half_edge (self).
     def SameEndpoints(self, half_edgeB):
-        if (self.FromVertex() is half_edgeB.ToVertex() and
-            self.ToVertex() is half_edgeB.FromVertex()):
+        if self.FromVertex() is half_edgeB.ToVertex() and self.ToVertex() is half_edgeB.FromVertex():
             return True
-
-        if (self.FromVertex() is half_edgeB.FromVertex() and
-            self.ToVertex() is half_edgeB.ToVertex()):
+        if self.FromVertex() is half_edgeB.FromVertex() and self.ToVertex() is half_edgeB.ToVertex():
             return True
 
         return False
@@ -205,7 +199,7 @@ class HALF_EDGE_BASE:
     #    repeated calls to PrevHalfEdgeAroundVertex() move in a
     #    consistent direction.
     def PrevHalfEdgeAroundVertex(self, iv):
-        if (self.FromVertexIndex() == iv):
+        if self.FromVertexIndex() == iv:
             return self.PrevHalfEdgeAroundFromVertex()
         else:
             return self.NextHalfEdgeInCell().NextHalfEdgeAroundEdge()
@@ -226,9 +220,8 @@ class HALF_EDGE_BASE:
         return s
 
     def __init__(self):
-
         ## Unique non-negative integer identifying the half-edge.
-        self.index = None;
+        self.index = None
 
         ## Next half edge in cell.
         self.next_half_edge_in_cell = None
@@ -247,15 +240,14 @@ class HALF_EDGE_BASE:
 
 
 class CELL_BASE:
-
     def Index(self):
-        return(self.index)
+        return self.index
 
     def NumVertices(self):
-        return(self.num_vertices)
+        return self.num_vertices
 
     def HalfEdge(self):
-        return(self.half_edge)
+        return self.half_edge
 
     def __init__(self):
 
@@ -476,7 +468,7 @@ class HALF_EDGE_MESH_BASE:
     ## Add numv vertices ith indices from 0 to numv-1.
     #  @pre Half edge mesh has no vertices.
     def AddVertices(self, numv):
-        if (len(self._vertex_dict) > 0):
+        if len(self._vertex_dict) > 0:
             raise Exception("Error. Cannot call AddVertices() if mesh already has some vertices.")
 
         for iv in range(0,numv):
@@ -486,12 +478,11 @@ class HALF_EDGE_MESH_BASE:
     ## Add cell with index icell.
     # param icell Cell index. Should not already be in CellIndices().
     def AddCell(self, icell, cell_vertex):
-
-        if (len(cell_vertex) < 3):
+        if len(cell_vertex) < 3:
             raise Exception("Illegal argument to AddCell(). List cell_vertex[] must have 3 or more vertices.")
 
-        if (icell in self.CellIndices()):
-            raise Exception("Illegal argument to AddCell(). Cell with index " +\
+        if icell in self.CellIndices():
+            raise Exception("Illegal argument to AddCell(). Cell with index " + \
                 str(icell) + " already exists.")
 
         cell = self._AddCell(icell)
@@ -520,7 +511,7 @@ class HALF_EDGE_MESH_BASE:
         # Lin last half edge (hprev) and first half edge (half_edge0)
         self._LinkHalfEdgesInCell(hprev, half_edge0)
 
-        if (len(cell_vertex) != cell.NumVertices()):
+        if len(cell_vertex) != cell.NumVertices():
             raise Exception("Error in AddCell().  Incorrect number of vertices in cell.")
 
 
@@ -785,12 +776,10 @@ class HALF_EDGE_MESH_BASE:
     ## Check vertices, half edges and cells.
     # - Return False if problem detected.
     def CheckAll(self):
-
         flag, iv, error_msg = self.CheckVertices()
         if not flag:
             if (error_msg is None):
                 error_msg = "Error related to vertex " + str(iv) + "."
-
             return False, error_msg
 
         flag, ihalf_edge, error_msg = self.CheckHalfEdges()
@@ -799,14 +788,12 @@ class HALF_EDGE_MESH_BASE:
                 half_edge = self.HalfEdge(ihalf_edge)
                 error_msg = "Error related to half edge " +\
                     half_edge.IndexAndEndpointsStr(",") + "."
-
             return False, error_msg
 
         flag, icell, error_msg = self.CheckCells()
         if not flag:
             if (error_msg is None):
                 error_msg = "Error related to cell " + str(icell) + "."
-
             return False, error_msg
 
         # Passed all checks.

@@ -24,89 +24,82 @@ import half_edge_mesh
 ## Get first line that is not blank or a comment.
 # - First non-blank character in a comment line is '#'.
 def get_next_non_comment_line(infile):
-
     line = infile.readline()
     while line:
         line = line.lstrip()
         line = line.rstrip()
-        if (len(line) > 0):
-            if (line[0] != '#'): return(line)
+        if len(line) > 0:
+            if line[0] != '#':
+                return line
         line = infile.readline()
-    return(line)
-
+    return line
 
 ## Read off file.
 #  - mesh is derived from HALF_EDGE_MESH_BASE.
 #  @pre Dimension of vertices is 3.
 def read_off_file(infile, mesh):
-
     line = infile.readline()
     line = line.rstrip()
 
-    if (line != "OFF"):
+    if line != "OFF":
         raise Exception("Read error. File does not being with OFF.")
 
     line = get_next_non_comment_line(infile)
-    if (not line):
+    if not line:
         raise Exception("Read error. File does not contain line with number of vertices and polygons.")
 
     listX = line.split()
-    if (len(listX) == 0):
+    if len(listX) == 0:
         raise Exception("Incorrect file format. File missing number of vertices and polygons.")
-    elif (len(listX) == 1):
+    elif len(listX) == 1:
         raise Exception("Incorrect file format. File missing number of polygons.")
 
     numv = int(listX[0])
     numpoly = int(listX[1])
 
     mesh.AddVertices(numv)
-    for iv in range(0,numv):
+    for iv in range(0, numv):
         line = get_next_non_comment_line(infile)
-        if (not line):
+        if not line:
             raise Exception("Read error. File is missing some vertex coordinates.")
 
         listX = line.split()
-        if (len(listX) < 3):
+        if len(listX) < 3:
             raise Exception("Read error.  Error reading vertex coordinates.")
 
-        coord = [ float(listX[0]), float(listX[1]), float(listX[2])]
+        coord = [float(listX[0]), float(listX[1]), float(listX[2])]
         mesh.SetCoord(iv, coord)
 
-    for ipoly in range(0,numpoly):
+    for ipoly in range(0, numpoly):
         line = get_next_non_comment_line(infile)
-        if (not line):
+        if not line:
             raise Exception("Read error. File is missing some polygon vertices.")
 
         listX = line.split()
-        if (len(listX) < 1):
+        if len(listX) < 1:
             raise Exception("Read error. Error reading polygon vertices.")
 
         num_poly_vert = int(listX[0])
-        if (len(listX) < num_poly_vert+1):
+        if len(listX) < num_poly_vert+1:
             raise Exception("Read error. Error reading polygon vertices.")
 
         cell_vlist = []
-        for k in range(1,num_poly_vert+1):
+        for k in range(1, num_poly_vert + 1):
             cell_vlist.append(int(listX[k]))
 
         mesh.AddCell(ipoly, cell_vlist)
-
-
 
 ## Open and read off file into mesh.
 #  - mesh is derived from HALF_EDGE_MESH_BASE.
 #  @pre Dimension of vertices is 3.
 def open_and_read_off_file(input_filename, mesh):
-
     try:
         with open(input_filename, 'r') as infile:
             read_off_file(infile, mesh)
-
     except Exception as e:
         print("Error reading file " + input_filename + ".")
         print(e)
         exit(-1)
-
 
 ## Write off file.
 #  - mesh is derived from HALF_EDGE_MESH_BASE.
