@@ -277,9 +277,9 @@ class HALF_EDGE_MESH_BASE:
     def __init__(self, classV, classHE, classC):
 
         ## Set class types of vertices, half edges and cells.
-        self.VERTEX_TYPE = classV;
-        self.HALF_EDGE_TYPE = classHE;
-        self.CELL_TYPE = classC;
+        self.VERTEX_TYPE = classV
+        self.HALF_EDGE_TYPE = classHE
+        self.CELL_TYPE = classC
 
         ## Dictionary of vertices.
         self._vertex_dict = dict()
@@ -306,7 +306,7 @@ class HALF_EDGE_MESH_BASE:
     ## Create vertex with index iv, if vertex iv does not exist.
     # - Return vertex.
     # = Returns vertex, even if vertex already exists.
-    def _CreateVertex(self,iv):
+    def _CreateVertex(self, iv):
         if (iv < 0):
             raise Exception("Illegal argument to _CreateVertex().  Vertex index must be non-negative.")
 
@@ -377,9 +377,9 @@ class HALF_EDGE_MESH_BASE:
         hnext.prev_half_edge_in_cell = hprev
 
     def _LinkHalfEdgesAroundEdge(self, half_edgeA, half_edgeB):
-        half_edgeC = half_edgeA.next_half_edge_around_edge;
-        half_edgeA.next_half_edge_around_edge = half_edgeB;
-        half_edgeB.next_half_edge_around_edge = half_edgeC;
+        half_edgeC = half_edgeA.next_half_edge_around_edge
+        half_edgeA.next_half_edge_around_edge = half_edgeB
+        half_edgeB.next_half_edge_around_edge = half_edgeC
 
 
     ## Add cell with index icell.
@@ -467,7 +467,7 @@ class HALF_EDGE_MESH_BASE:
     #  @param iv Vertex index. Should not already be in VertexIndices().
     #  - Returns vertex.
     def AddVertex(self, iv):
-        if (iv in self._vertex_dict):
+        if iv in self._vertex_dict:
             raise Exception("Illegal argument to AddVertex(). Vertex " + str(iv) + " already exists.")
 
         return self._CreateVertex(iv)
@@ -580,7 +580,7 @@ class HALF_EDGE_MESH_BASE:
                     flag_boundary = True
                     boundary_half_edge = half_edge
 
-            if (flag_boundary):
+            if flag_boundary:
                 # Note: v.half_edge_from[] must contain at least
                 #   one half edge for flag_boundary to be true.
                 half_edge = v.half_edge_from[0]
@@ -614,24 +614,24 @@ class HALF_EDGE_MESH_BASE:
 
             half_edge = self.HalfEdge(ihalf_edge)
 
-            if (half_edge.Index() != ihalf_edge):
+            if half_edge.Index() != ihalf_edge:
                 error_msg = "Incorrect half edge index for half edge " +\
                     str(ihalf_edge) + "."
                 return False, ihalf_edge, error_msg
 
             v = half_edge.FromVertex()
-            if (v is None):
+            if v is None:
                 error_msg = "Missing (None) from vertex in half edge " +\
                     str(ihalf_edge) + "."
                 return False, ihalf_edge, error_msg
 
             num_match = v.half_edge_from.count(half_edge)
-            if (num_match < 1):
+            if num_match < 1:
                 error_msg = "Half edge " + half_edge.IndexAndEndpointsStr(",") +\
                     " does not appear in half_edge_from[] list for vertex " +\
                     str(v.Index()) + "."
                 return False, ihalf_edge, error_msg
-            elif (num_match > 1):
+            elif num_match > 1:
                 error_msg = "Half edge appears more than once in half_edge_from[] list for vertex " +\
                     str(v.Index()) + "."
                 return False, ihalf_edge, error_msg
@@ -646,22 +646,22 @@ class HALF_EDGE_MESH_BASE:
             prev_half_edge = half_edge.PrevHalfEdgeInCell()
             next_half_edge = half_edge.NextHalfEdgeInCell()
 
-            if (cell is None):
+            if cell is None:
                 error_msg = "Half edge " + str(ihalf_edge) +\
                     " missing cell containing half edge."
                 return False, ihalf_edge, error_msg
 
-            if (prev_half_edge is None):
+            if prev_half_edge is None:
                 error_msg = "Half edge " + str(ihalf_edge) +\
                     " missing previous half edge in cell."
                 return False, ihalf_edge, error_msg
 
-            if (next_half_edge is None):
+            if next_half_edge is None:
                 error_msg = "Half edge " + str(ihalf_edge) +\
                     " missing next half edge in cell."
                 return False, ihalf_edge, error_msg
 
-            if (prev_half_edge.Cell() != cell):
+            if prev_half_edge.Cell() != cell:
                 error_msg = "Half edge " + str(ihalf_edge) +\
                     " and previous half edge " + str(previous_half_edge.Index()) +\
                     " are in different cells."
@@ -675,19 +675,19 @@ class HALF_EDGE_MESH_BASE:
 
             half_edgeX = half_edge.NextHalfEdgeAroundEdge()
 
-            if (half_edgeX is None):
+            if half_edgeX is None:
                 error_msg = "Half edge " + half_edge.IndexAndEndpointsStr(",") +\
                     " missing next half edge around edge."
                 return False, ihalf_edge, error_msg
 
-            if (half_edgeX != half_edge):
-                if (not half_edge.SameEndpoints(half_edgeX)):
+            if half_edgeX != half_edge:
+                if not half_edge.SameEndpoints(half_edgeX):
                     error_msg = "Error. Two half edges around edge have different endpoints." +\
                         " Half edge:" + half_edge.IndexAndEndpointsStr(",") + " "\
                         + half_edgeX.IndexAndEndpointsStr(",")
                     return False, ihalf_edge, error_msg
 
-                if (half_edgeX.Cell() == cell):
+                if half_edgeX.Cell() == cell:
                     error_msg = "Error. Two half edges around edge are in the same cell. " +\
                         " Half edges: " + half_edge.IndexAndEndpointsStr(",") + " "\
                         + half_edgeX.IndexAndEndpointsStr(",")
@@ -711,7 +711,7 @@ class HALF_EDGE_MESH_BASE:
             numh2 = vto.CountNumIncidentHalfEdges(ivfrom) +\
                     vfrom.CountNumIncidentHalfEdges(ivto)
 
-            if (numh != numh2):
+            if numh != numh2:
                 error_msg = "Inconsistency between half edges around edge " +\
                     "and vertex incident lists for edge (" +\
                     half_edge.EndpointsStr(",") + ")."
@@ -720,7 +720,7 @@ class HALF_EDGE_MESH_BASE:
             # Mark all visited half edges so that they are not processed again.
             # Reduces time spent checking half edge around edge.
             half_edgeX = half_edge
-            for k in (0,numh):
+            for k in (0, numh):
                 ihalf_edgeX = half_edge.Index()
                 is_visited[ihalf_edgeX] = True
                 half_edgeX = half_edgeX.NextHalfEdgeAroundEdge()
@@ -737,8 +737,8 @@ class HALF_EDGE_MESH_BASE:
         error_msg = None
         icell = 0
 
-        icmax = max(self.CellIndices(),default=-1)
-        if (self.MaxHalfEdgeIndex() < icmax):
+        icmax = max(self.CellIndices(), default=-1)
+        if self.MaxHalfEdgeIndex() < icmax:
             error_msg = "Incorrect value (" + str(self.MaxCellIndex()) +\
                 ") of _max_cell_index.  Max cell is " + str(icmax) + "."
             return False, icmax, error_msg
@@ -748,13 +748,13 @@ class HALF_EDGE_MESH_BASE:
 
             cell = self.Cell(icell)
 
-            if (cell.Index() != icell):
+            if cell.Index() != icell:
                 error_msg = "Incorrect cell index for cell " +\
                     str(icell) + "."
                 return False, icell, error_msg
 
             half_edge0 = cell.HalfEdge()
-            if (half_edge0.Cell() is not cell):
+            if half_edge0.Cell() is not cell:
                 error_msg = "Incorrect half edge stored in cell " +\
                     str(icell) + "."
                 return False, icell, error_msg
@@ -765,14 +765,14 @@ class HALF_EDGE_MESH_BASE:
             for k in range(1,cell_numv):
                 half_edge = half_edge.NextHalfEdgeInCell()
 
-                if (half_edge == half_edge0) :
+                if half_edge == half_edge0:
                     error_msg = "Incorrect number of vertices (" +\
                         str(cell_numv) + ") stored in cell " +\
                         str(icell) + ". Counted " + str(k) + " vertices."
                     return False, icell, error_msg
 
 
-            if (half_edge.NextHalfEdgeInCell() is not half_edge0):
+            if half_edge.NextHalfEdgeInCell() is not half_edge0:
                 error_msg = "Incorrect number of vertices (" +\
                     str(cell_numv) + ") stored in cell " +\
                     str(icell) + ".  Cell has more than " + str(cell_numv) +\
