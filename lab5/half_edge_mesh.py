@@ -42,15 +42,15 @@ class VERTEX_BASE:
 
     ## Dimension = Number of coordinates.
     # - All vertices have the same dimension.
-    _DIM = 3;
+    _DIM = 3
 
-    def Dimension(self) :
+    def Dimension(self):
         return self._DIM
 
-    def KthCoord(self, k) :
+    def KthCoord(self, k):
         return self.coord[k]
 
-    def Index(self) :
+    def Index(self):
         return self.index
 
     def NumHalfEdgesFrom(self):
@@ -86,7 +86,7 @@ class VERTEX_BASE:
         if (self.half_edge_from[0]).IsBoundary():
             return
 
-        for k in range(1,self.NumHalfEdgesFrom()):
+        for k in range(1, self.NumHalfEdgesFrom()):
             half_edge = self.half_edge_from[k]
             if (half_edge.IsBoundary()):
                 temp = self.half_edge_from[0]
@@ -99,7 +99,7 @@ class VERTEX_BASE:
             return ""
 
         s = str(self.KthCoord(0))
-        for ic in range(1,self.Dimension()):
+        for ic in range(1, self.Dimension()):
             s = s + " " + str(self.KthCoord(ic))
 
         return s

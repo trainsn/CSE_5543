@@ -165,10 +165,10 @@ def create_new_mesh(mesh):
         cell = mesh.Cell(icell)
         half_edge = cell.HalfEdge()
         cell_vlist = []
-        for j in range(0,cell.NumVertices()):
+        for j in range(0, cell.NumVertices()):
             iv = half_edge.FromVertexIndex()
             v = mesh.Vertex(iv)
-            iv_new = v.new_val;
+            iv_new = v.new_val
             cell_vlist.append(iv_new)
             half_edge = half_edge.NextHalfEdgeInCell()
         new_mesh.AddCell(cell.new_val, cell_vlist)
@@ -214,10 +214,10 @@ def warn_non_manifold_or_not_oriented(mesh):
     flag_non_manifold = flag_non_manifold_vertex or flag_non_manifold_edge
 
     # Initialize
-    flag_not_oriented = False;
+    flag_not_oriented = False
 
     if (flag_non_manifold_edge):
-        flag_not_oriented = True;
+        flag_not_oriented = True
     else:
         flag, ihalf_edge = mesh.CheckOrientation()
         flag_not_oriented = not(flag);
