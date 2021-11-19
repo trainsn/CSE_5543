@@ -135,6 +135,21 @@ def main(args):
             idx += 1
 
         # connect new mesh
+        num_faces = 0
+        for icell in mesh.CellIndices():
+            cell = mesh.Cell(icell)
+            e_start = cell.HalfEdge()
+            e = e_start
+            while True:
+                v1 = cell.face_point_idx
+                v2 = e.edge_point_idx
+                v3 = e.ToVertexIndex().new_point_idx
+                v4 = e.NextHalfEdgeInCell().edge_point_idx
+                mesh.AddCell(num_faces, [v1, v2, v3, v4])
+                num_faces += 1
+                e = e.NextHalfEdgeInCell()
+                if e.Index() == e_start.Index():
+                    break
 
     output_filename = "out.off"
     half_edge_mesh_IO.open_and_write_file(output_filename, mesh)
