@@ -42,7 +42,7 @@ def main(args):
         idx = 0
 
         # generate face points
-        for icell in range(mesh.CellIndices()):
+        for icell in mesh.CellIndices():
             cell = mesh.Cell(icell)
             e_start = cell.HalfEdge()
             e = e_start
@@ -64,7 +64,7 @@ def main(args):
             idx += 1
 
         # generate edge points
-        for ihalf_edge in range(mesh.HalfEdgeIndices()):
+        for ihalf_edge in mesh.HalfEdgeIndices():
             edge = mesh.HalfEdge(ihalf_edge)
             if edge.edge_point is not None:
                 continue
