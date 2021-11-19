@@ -238,6 +238,9 @@ class HALF_EDGE_BASE:
         ## Cell containing half edge.
         self.cell = None
 
+        ## its future edge point
+        self.edge_point = None
+
 
 class CELL_BASE:
     def Index(self):
@@ -259,6 +262,9 @@ class CELL_BASE:
 
         ## Number of cell vertices.
         self.num_vertices = 0
+
+        ## face point
+        self.face_point = None
 
 
 # Pass vertex, half edge and cell classes to HALF_EDGE_MESH_BASE.
@@ -304,7 +310,7 @@ class HALF_EDGE_MESH_BASE:
 
         self._max_vertex_index = max(self._max_vertex_index, iv)
 
-        if (iv in self._vertex_dict):
+        if iv in self._vertex_dict:
             return self._vertex_dict[iv]
 
         v = self.VERTEX_TYPE()
@@ -471,7 +477,7 @@ class HALF_EDGE_MESH_BASE:
         if len(self._vertex_dict) > 0:
             raise Exception("Error. Cannot call AddVertices() if mesh already has some vertices.")
 
-        for iv in range(0,numv):
+        for iv in range(0, numv):
             self._CreateVertex(iv)
 
 
@@ -753,7 +759,7 @@ class HALF_EDGE_MESH_BASE:
             half_edge = half_edge0
             cell_numv = cell.NumVertices()
 
-            for k in range(1,cell_numv):
+            for k in range(1, cell_numv):
                 half_edge = half_edge.NextHalfEdgeInCell()
 
                 if half_edge == half_edge0:

@@ -138,7 +138,7 @@ int main(int argc, char** argv) {
      menu();
      return 0;
      } */
-    int option = 1;
+    int option = 2;
     if (option == 0) {
         g_filename = "input/quad.obj";
     }

@@ -39,9 +39,9 @@ def main(args):
 
     for iter in range(args.num_iter):
         meshNew = HALF_EDGE_MESH_BASE(VERTEX_BASE, HALF_EDGE_BASE, CELL_BASE)
+        idx = 0
 
         # generate face points
-        meshNew.AddVertices(mesh.NumCells())
         for icell in range(mesh.CellIndices()):
             cell = mesh.Cell(icell)
             e_start = cell.HalfEdge()
@@ -58,13 +58,36 @@ def main(args):
                 if e.Index() == e_start.Index():
                     break
             coord = [X / num, Y / num, Z / num]
-            meshNew.SetCoord(icell, coord)
+            meshNew.AddVertex(idx)
+            meshNew.SetCoord(idx, coord)
+            cell.face_point = meshNew.Cell(idx)
+            idx += 1
 
         # generate edge points
+        for ihalf_edge in range(mesh.HalfEdgeIndices()):
+            edge = mesh.HalfEdge(ihalf_edge)
+            if edge.edge_point is not None:
+                continue
+            if edge.IsBoundary():
+                st, en = edge.FromVertex(), edge.ToVertex()
+                coord = [(st.KthCoord(0) + en.KthCoord(0)) / 2.0,
+                         (st.KthCoord(1) + en.KthCoord(1)) / 2.0,
+                         (st.KthCoord(2) + en.KthCoord(2)) / 2.0]
+                meshNew.AddVertex(idx)
+                meshNew.SetCoord(idx, coord)
+                edge.edge_point = meshNew.Cell(idx)
+            else:
+                st, en = edge.FromVertex(), edge.ToVertex()
+                face1, face2 = edge.Cell().face_point, edge.NextHalfEdgeAroundEdge().Cell().face_point
+                coord = [(st.KthCoord(0) + en.KthCoord(0) + face1.KthCoord(0) + face2.KthCoord(0)) / 4.0,
+                         (st.KthCoord(1) + en.KthCoord(1) + face1.KthCoord(1) + face2.KthCoord(1)) / 4.0,
+                         (st.KthCoord(2) + en.KthCoord(2) + face1.KthCoord(2) + face2.KthCoord(2)) / 4.0]
+                meshNew.AddVertex(idx)
+                meshNew.SetCoord(idx, coord)
+                edge.edge_point = meshNew.Cell(idx)
+                edge.NextHalfEdgeAroundEdge().edge_point = meshNew.Cell(idx)
 
-
-
-
+            idx += 1
 
 
     output_filename = "out.off"
