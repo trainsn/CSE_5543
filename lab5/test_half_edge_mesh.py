@@ -60,13 +60,13 @@ def main(args):
             coord = [X / num, Y / num, Z / num]
             meshNew.AddVertex(idx)
             meshNew.SetCoord(idx, coord)
-            cell.face_point = meshNew.Cell(idx)
+            cell.face_point_idx = idx
             idx += 1
 
         # generate edge points
         for ihalf_edge in mesh.HalfEdgeIndices():
             edge = mesh.HalfEdge(ihalf_edge)
-            if edge.edge_point is not None:
+            if edge.edge_point_idx != -1:
                 continue
             if edge.IsBoundary():
                 st, en = edge.FromVertex(), edge.ToVertex()
@@ -75,17 +75,19 @@ def main(args):
                          (st.KthCoord(2) + en.KthCoord(2)) / 2.0]
                 meshNew.AddVertex(idx)
                 meshNew.SetCoord(idx, coord)
-                edge.edge_point = meshNew.Cell(idx)
+                edge.edge_point_idx = idx
             else:
                 st, en = edge.FromVertex(), edge.ToVertex()
-                face1, face2 = edge.Cell().face_point, edge.NextHalfEdgeAroundEdge().Cell().face_point
+                face1, face2 = \
+                    meshNew.Vertex(edge.Cell().face_point_idx), \
+                    meshNew.Vertex(edge.NextHalfEdgeAroundEdge().Cell().face_point_idx)
                 coord = [(st.KthCoord(0) + en.KthCoord(0) + face1.KthCoord(0) + face2.KthCoord(0)) / 4.0,
                          (st.KthCoord(1) + en.KthCoord(1) + face1.KthCoord(1) + face2.KthCoord(1)) / 4.0,
                          (st.KthCoord(2) + en.KthCoord(2) + face1.KthCoord(2) + face2.KthCoord(2)) / 4.0]
                 meshNew.AddVertex(idx)
                 meshNew.SetCoord(idx, coord)
-                edge.edge_point = meshNew.Cell(idx)
-                edge.NextHalfEdgeAroundEdge().edge_point = meshNew.Cell(idx)
+                edge.edge_point_idx = idx
+                edge.NextHalfEdgeAroundEdge().edge_point_idx = idx
 
             idx += 1
 
@@ -111,7 +113,7 @@ def main(args):
                 face_avg = [0., 0., 0.]
                 for k in range(valence):
                     half_edge = v.KthHalfEdgeFrom(k)
-                    face_point = half_edge.Cell().face_point
+                    face_point = meshNew.Vertex(half_edge.Cell().face_point_idx)
                     face_avg[0] += face_point.KthCoord(0) / valence
                     face_avg[1] += face_point.KthCoord(1) / valence
                     face_avg[2] += face_point.KthCoord(2) / valence
@@ -119,7 +121,7 @@ def main(args):
                 # find the edge_point average
                 edge_avg = [0., 0., 0.]
                 for k in range(valence):
-                    half_edge_point = v.KthHalfEdgeFrom(k).edge_point
+                    half_edge_point = meshNew.Vertex(v.KthHalfEdgeFrom(k).edge_point_idx)
                     edge_avg[0] += half_edge_point.KthCoord(0) / valence
                     edge_avg[1] += half_edge_point.KthCoord(1) / valence
                     edge_avg[2] += half_edge_point.KthCoord(2) / valence
@@ -129,8 +131,10 @@ def main(args):
                 coord[2] = (face_avg[2] + edge_avg[2] * 2 + v.KthCoord(2) * (valence - 3)) / valence
             meshNew.AddVertex(idx)
             meshNew.SetCoord(idx, coord)
+            v.new_point_idx = idx
             idx += 1
-            
+
+        # connect new mesh
 
     output_filename = "out.off"
     half_edge_mesh_IO.open_and_write_file(output_filename, mesh)

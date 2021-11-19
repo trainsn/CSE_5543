@@ -118,6 +118,9 @@ class VERTEX_BASE:
         for ic in range(0, self.Dimension()):
             self.coord.append(0)
 
+        # its future new point
+        self.new_point_idx = -1
+
 
 class HALF_EDGE_BASE:
     def Index(self):
@@ -239,7 +242,7 @@ class HALF_EDGE_BASE:
         self.cell = None
 
         ## its future edge point
-        self.edge_point = None
+        self.edge_point_idx = -1
 
 
 class CELL_BASE:
@@ -264,7 +267,7 @@ class CELL_BASE:
         self.num_vertices = 0
 
         ## face point
-        self.face_point = None
+        self.face_point_idx = -1
 
 
 # Pass vertex, half edge and cell classes to HALF_EDGE_MESH_BASE.

@@ -166,27 +166,6 @@ void connect_new_mesh(Mesh *mesh, Mesh *previous) {
             fvertices.push_back(*v3);
             fvertices.push_back(*v4);
 
-            // update indices & calculate normals and prepare draw vertices all at once
-            //std::vector<int> f;
-            //f.push_back(index++);
-            //f.push_back(index++);
-            //f.push_back(index++);
-            //f.push_back(index++);
-            //mesh->vertex_indices.push_back(f);
-
-            // calculate per face normal
-            // begin
-            Vector3f ab = (*v1)->pos - (*v2)->pos;
-            Vector3f bc = (*v2)->pos - (*v3)->pos;
-            Vector3f normal;
-            cross(&normal, &ab, &bc);
-            normal.normalize();
-            (*v1)->normal = normal;
-            (*v2)->normal = normal;
-            (*v3)->normal = normal;
-            (*v4)->normal = normal;
-            // end
-
             make_face(fvertices, mesh);
 
             edge = edge->next;
@@ -194,4 +173,3 @@ void connect_new_mesh(Mesh *mesh, Mesh *previous) {
         } while (edge != (*i)->edge);
     }
 }
-
