@@ -95,12 +95,10 @@ def main(args):
             v = mesh.Vertex(iv)
             valence = v.NumHalfEdgesFrom()
 
-            is_boundary = False
-            for k in range(valence):
-                half_edge = v.KthHalfEdgeFrom(k)
-                if half_edge.IsBoundary():
-                    is_boundary = True
-                    break
+            if v.NumHalfEdgesFrom() == 0 or v.KthHalfEdgeFrom(0).IsBoundary():
+                is_boundary = True
+            else:
+                is_boundary = False
 
             coord = [0., 0., 0.]
             if is_boundary:     # old vertex point
@@ -150,6 +148,9 @@ def main(args):
                 if e.Index() == e_start.Index():
                     break
 
+        mesh_new.CheckAll()
+        mesh_new.CheckManifold()
+        mesh_new.CheckOrientation()
         meshes.append(mesh_new)
 
     output_filename = "out.off"
