@@ -546,7 +546,7 @@ class HALF_EDGE_MESH_BASE:
         error_msg = None
         iv = 0
 
-        ivmax = max(self.VertexIndices(),default=-1)
+        ivmax = max(self.VertexIndices(), default=-1)
         if (self.MaxVertexIndex() < ivmax):
             error_msg = "Incorrect value (" + str(self.MaxVertexIndex()) +\
                 ") of _max_vertex_index.  Max vertex is " + str(ivmax) + "."
@@ -562,7 +562,7 @@ class HALF_EDGE_MESH_BASE:
 
             flag_boundary = False
             boundary_half_edge = None
-            for k in range(0,v.NumHalfEdgesFrom()):
+            for k in range(0, v.NumHalfEdgesFrom()):
                 half_edge = v.KthHalfEdgeFrom(k)
                 if (half_edge is None):
                     error_msg = "Vertex " + str(iv) + " list half_edge_from[" + str(k) + "] = None."

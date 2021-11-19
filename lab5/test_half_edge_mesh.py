@@ -89,6 +89,48 @@ def main(args):
 
             idx += 1
 
+        # generate new vertices
+        for iv in mesh.VertexIndices():
+            v = mesh.Vertex(iv)
+            valence = v.NumHalfEdgesFrom()
+
+            is_boundary = False
+            for k in range(valence):
+                half_edge = v.KthHalfEdgeFrom(k)
+                if half_edge.IsBoundary():
+                    is_boundary = True
+                    break
+
+            coord = [0., 0., 0.]
+            if is_boundary:     # old vertex point
+                coord[0] = v.KthCoord(0)
+                coord[1] = v.KthCoord(1)
+                coord[2] = v.KthCoord(2)
+            else:
+                # find the face average
+                face_avg = [0., 0., 0.]
+                for k in range(valence):
+                    half_edge = v.KthHalfEdgeFrom(k)
+                    face_point = half_edge.Cell().face_point
+                    face_avg[0] += face_point.KthCoord(0) / valence
+                    face_avg[1] += face_point.KthCoord(1) / valence
+                    face_avg[2] += face_point.KthCoord(2) / valence
+
+                # find the edge_point average
+                edge_avg = [0., 0., 0.]
+                for k in range(valence):
+                    half_edge_point = v.KthHalfEdgeFrom(k).edge_point
+                    edge_avg[0] += half_edge_point.KthCoord(0) / valence
+                    edge_avg[1] += half_edge_point.KthCoord(1) / valence
+                    edge_avg[2] += half_edge_point.KthCoord(2) / valence
+
+                coord[0] = (face_avg[0] + edge_avg[0] * 2 + v.KthCoord(0) * (valence - 3)) / valence
+                coord[1] = (face_avg[1] + edge_avg[1] * 2 + v.KthCoord(1) * (valence - 3)) / valence
+                coord[2] = (face_avg[2] + edge_avg[2] * 2 + v.KthCoord(2) * (valence - 3)) / valence
+            meshNew.AddVertex(idx)
+            meshNew.SetCoord(idx, coord)
+            idx += 1
+            
 
     output_filename = "out.off"
     half_edge_mesh_IO.open_and_write_file(output_filename, mesh)

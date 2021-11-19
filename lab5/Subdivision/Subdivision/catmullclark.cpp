@@ -126,11 +126,6 @@ void generate_new_vertices(Mesh *mesh, Mesh *previous) { // original vertices in
         }
 
         else if (valence == 3) { // weird case?????
-            Vector3f sum;
-            for (std::vector<Vertex*>::iterator t = neighbors.begin(); t != neighbors.end(); t++) {
-                sum = sum + (*t)->pos;
-            }
-            //(*v)->newPoint->pos = sum * 0.25 + (*v)->pos*0.25; // WHY NOT???????????
             HalfEdge *ccw_edge = most_counter_clockwise((*v)->edge);
             HalfEdge *cw_edge = most_clockwise((*v)->edge);
             (*v)->newPoint->pos = (ccw_edge->edgePoint->pos + cw_edge->edgePoint->pos)*.25 + (*v)->pos*0.5;
