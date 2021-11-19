@@ -1,9 +1,7 @@
-##   file test_half_edge_mesh.py
-#    Test program for half_edge_mesh.py.
-#
 #  - Reads a .off file into HALF_EDGE_MESH_BASE.
 #  - Checks mesh, manifold and orientations properties of the mesh.
-#  - Writes the mesh to a .off file.
+#  - Apply Catmull-Clark subdivision algorithm
+#  - Writes the output mesh to a .off file.
 
 import argparse
 import sys
@@ -13,10 +11,10 @@ from half_edge_mesh import HALF_EDGE_MESH_BASE
 
 # parse arguments
 def parse_args():
-  parser = argparse.ArgumentParser(description="Deep Learning Model")
+  parser = argparse.ArgumentParser(description="Catmull-Clark subdivision")
 
   parser.add_argument("--num_iter", type=int, default=1,
-                      help="the number of the Catmull-Clark subdivision.")
+                      help="the number of iterations of the Catmull-Clark subdivision.")
   parser.add_argument("--input", type=str, required=True,
                       help="the input off file.")
 
