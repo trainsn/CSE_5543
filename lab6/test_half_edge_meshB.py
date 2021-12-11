@@ -20,32 +20,23 @@ from half_edge_mesh import HALF_EDGE_MESH_BASE
 
 
 def main(argv):
-
     global input_filename, output_filename, flag_silent, flag_no_warn
-    global flag_time
-
-    begin_time = time()
 
     # Initialize
     input_filename = None
     output_filename = None
     flag_silent = False
     flag_no_warn = False
-    flag_time = False
 
     parse_command_line(sys.argv)
 
-    mesh = HALF_EDGE_MESH_BASE(VERTEX_B,HALF_EDGE_B,CELL_B)
-
+    mesh = HALF_EDGE_MESH_BASE(VERTEX_B, HALF_EDGE_B, CELL_B)
     half_edge_mesh_IO.open_and_read_off_file(input_filename, mesh)
-
-    time2 = time()
-
     check_mesh(mesh, flag_no_warn)
 
     mesh = test_new_classes(mesh)
     check_mesh(mesh, flag_no_warn)
-    if (not flag_silent):
+    if not flag_silent:
         write_mesh_info(mesh)
 
     new_mesh = create_new_mesh(mesh)
@@ -68,15 +59,6 @@ def main(argv):
 
     half_edge_mesh_IO.open_and_write_file(output_filename, new_mesh)
 
-    end_time = time()
-
-    if (flag_time):
-        print_time("Time to read file:  ", (time2-begin_time))
-        print_time("Time to check mesh: ", (time3-time2))
-        print_time("Time to write file: ", (end_time-time3))
-        print_time("Total time:         ", (end_time-begin_time))
-
-
 # ****** New classes ******
 
 class VERTEX_B(half_edge_mesh.VERTEX_BASE):
@@ -87,7 +69,7 @@ class VERTEX_B(half_edge_mesh.VERTEX_BASE):
         half_edge_mesh.VERTEX_BASE.__init__(self)
 
         # New field.
-        self.new_val=0;
+        self.new_val = 0
 
 class HALF_EDGE_B(half_edge_mesh.HALF_EDGE_BASE):
     pass
@@ -109,26 +91,24 @@ class CELL_B(half_edge_mesh.CELL_BASE):
         half_edge_mesh.CELL_BASE.__init__(self)
 
         # New field.
-        self.new_val=0;
+        self.new_val = 0
 
 
 # ****** Test new classes ******
-
 def test_new_classes(mesh):
-
     for iv in mesh.VertexIndices():
         v = mesh.Vertex(iv)
-        v.new_val = v.Index()+5;
+        v.new_val = v.Index() + 5
 
     for ihalf_edge in mesh.HalfEdgeIndices():
         half_edge = mesh.HalfEdge(ihalf_edge)
-        half_edge.new_val = half_edge.Index()+5;
+        half_edge.new_val = half_edge.Index()+5
 
     for icell in mesh.CellIndices():
-        cell = mesh.Cell(icell);
-        cell.new_val = cell.Index()+5;
+        cell = mesh.Cell(icell)
+        cell.new_val = cell.Index()+5
 
-    return mesh;
+    return mesh
 
 def write_mesh_info(mesh):
     iv = int(mesh.NumVertices()/2)
@@ -149,7 +129,6 @@ def write_mesh_info(mesh):
 
 ## Create a new mesh using indices at new_val.
 def create_new_mesh(mesh):
-
     # Create new mesh.
     new_mesh = HALF_EDGE_MESH_BASE(VERTEX_B,HALF_EDGE_B,CELL_B)
 
@@ -181,7 +160,6 @@ def create_new_mesh(mesh):
 ## Check mesh and mesh manifold and orientation properties.
 #  - Return true if passed check.
 def check_mesh(mesh, flag_no_warn):
-
     flag, error_msg = mesh.CheckAll()
     if not flag:
         sys.stderr.write("Error detected in mesh data structure.\n")
@@ -201,7 +179,6 @@ def check_mesh(mesh, flag_no_warn):
 ## Print a warning message if the mesh is not a manifold or not oriented.
 #  - Returns flag_non_manifold, flag_not_oriented.
 def warn_non_manifold_or_not_oriented(mesh):
-
     flag_non_manifold_vertex, flag_non_manifold_edge, iv, ihalf_edge =\
         mesh.CheckManifold()
 
@@ -214,14 +191,14 @@ def warn_non_manifold_or_not_oriented(mesh):
     flag_non_manifold = flag_non_manifold_vertex or flag_non_manifold_edge
 
     # Initialize
-    flag_not_oriented = False;
+    flag_not_oriented = False
 
-    if (flag_non_manifold_edge):
-        flag_not_oriented = True;
+    if flag_non_manifold_edge:
+        flag_not_oriented = True
     else:
         flag, ihalf_edge = mesh.CheckOrientation()
-        flag_not_oriented = not(flag);
-        if (flag_not_oriented):
+        flag_not_oriented = not(flag)
+        if flag_not_oriented:
             flag_oriented = False
             sys.stderr.write("Warning: Inconsistent orientation of cells incident on edge (" +\
                 mesh.HalfEdge(ihalf_edge).EndpointsStr(",") + ").\n")
@@ -236,7 +213,6 @@ def print_time(label, timeX):
 
 def parse_command_line(argv):
     global input_filename, output_filename, flag_silent, flag_no_warn
-    global flag_time
 
     iarg = 1
     while (iarg < len(argv) and argv[iarg][0] == '-'):
@@ -245,8 +221,6 @@ def parse_command_line(argv):
             flag_silent = True
         elif (s == "-no_warn"):
             flag_no_warn = True
-        elif (s == "-time"):
-            flag_time = True
         elif (s == "-h"):
             help()
         else:
@@ -255,19 +229,19 @@ def parse_command_line(argv):
 
         iarg += 1
 
-    if (iarg >= len(argv) or iarg+2 < len(argv)):
+    if iarg >= len(argv) or iarg+2 < len(argv):
         usage_error()
 
     input_filename = argv[iarg]
 
-    if (iarg+1 < len(argv)):
+    if iarg+1 < len(argv):
         output_filename = argv[iarg+1]
 
     return
 
 
 def usage_msg(out):
-    out.write("Usage: python3 test_half_edge_meshB [-s] [-no_warn] [-time] <input filename> [<output_filename>]")
+    out.write("Usage: python3 test_half_edge_meshB [-s] [-no_warn] <input filename> [<output_filename>]")
 
 def usage_error():
     usage_msg(sys.stderr)

@@ -17,7 +17,6 @@ from half_edge_mesh_DCMT\
 
 
 def main(argv):
-
     global input_filename, output_filename
     global flag_silent, flag_terse, flag_no_warn, flag_time
     global flag_collapse_edges, flag_collapse_short_edges
@@ -26,8 +25,6 @@ def main(argv):
     global flag_split_edges, flag_split_long_edges
     global flag_allow_non_manifold, flag_fail_on_non_manifold
     global flag_reduce_checks
-
-    begin_time = time()
 
     # Number of cells in a "large" data set.
     LARGE_DATA_NUM_CELLS = 1000
@@ -40,11 +37,9 @@ def main(argv):
     parse_command_line(sys.argv)
 
     mesh = HALF_EDGE_MESH_DCMT_BASE\
-        (VERTEX_DCMT_BASE,HALF_EDGE_DCMT_BASE,CELL_DCMT_BASE)
+        (VERTEX_DCMT_BASE, HALF_EDGE_DCMT_BASE, CELL_DCMT_BASE)
 
     half_edge_mesh_IO.open_and_read_off_file(input_filename, mesh)
-
-    time2 = time()
 
     try:
         if not(flag_reduce_checks):
@@ -58,7 +53,7 @@ def main(argv):
         if (flag_collapse_edges):
             prompt_and_collapse_edges(mesh, flag_terse, flag_no_warn)
 
-        if (flag_split_cells):
+        if flag_split_cells:
             prompt_and_split_cells(mesh, flag_terse, flag_no_warn)
 
         if (flag_join_cells):
@@ -79,11 +74,11 @@ def main(argv):
 
         passed_check = check_mesh(mesh, flag_silent and flag_no_warn)
 
-        if not(flag_silent):
-            if (passed_check):
+        if not flag_silent:
+            if passed_check:
                 print("Mesh data structure passed check.")
 
-        if not(flag_silent):
+        if not flag_silent:
             print()
             print_mesh_info(mesh)
 
@@ -92,32 +87,19 @@ def main(argv):
         sys.stderr.write("Exiting.")
         exit(-1)
 
-    time3 = time()
-
     if (output_filename is None):
         output_filename = "out.off"
     if (output_filename == input_filename):
         output_filename = "out2.off"
 
-    if not(flag_silent):
+    if not flag_silent:
         print()
         print("Writing file: " + output_filename + ".")
 
     half_edge_mesh_IO.open_and_write_file(output_filename, mesh)
 
-    end_time = time()
-
-    if (flag_time):
-        print_time("Time to read file:    ", (time2-begin_time))
-        print_time("Time to process mesh: ", (time3-time2))
-        print_time("Time to write file:   ", (end_time-time3))
-        print_time("Total time:           ", (end_time-begin_time))
-
-    return 0
-
 
 # *** Collapse edge routines ***
-
 ## Collapse edge
 def collapse_edge(mesh, half_edge, flag_terse, flag_no_warn, flag_check):
     global flag_allow_non_manifold
@@ -207,7 +189,6 @@ def collapse_shortest_edge_in_each_cell(mesh, flag_terse, flag_no_warn):
 
 
 # *** Split edge routines. ***
-
 ## Split edge.
 def split_edge(mesh, half_edge, flag_terse, flag_no_warn, flag_check):
 
@@ -224,7 +205,6 @@ def split_edge(mesh, half_edge, flag_terse, flag_no_warn, flag_check):
 
 ## Prompt and split edges.
 def prompt_and_split_edges(mesh, flag_terse, flag_no_warn):
-
     while True:
         half_edge0 = prompt_for_mesh_edge(mesh, False)
 
@@ -234,7 +214,6 @@ def prompt_and_split_edges(mesh, flag_terse, flag_no_warn):
             return
 
         split_edge(mesh, half_edge0, flag_terse, flag_no_warn, True)
-
         print()
 
 
@@ -306,11 +285,11 @@ def split_cell(mesh, half_edgeA, half_edgeB,\
 
     if (flag or flag_allow_non_manifold):
         if not(flag_terse):
-            print(f"Splitting cell {icell} at diagonal ({ivA},{ivB}).")
+            print("Splitting cell {icell} at diagonal ({ivA},{ivB}).")
 
         split_edge = mesh.SplitCell(ihalf_edgeA, ihalf_edgeB)
         if (split_edge is None):
-            print(f"Split of cell {icell} at diagonal ({ivA},{ivB}) failed.")
+            print("Split of cell {icell} at diagonal ({ivA},{ivB}) failed.")
 
         if (flag_check):
             check_mesh(mesh, flag_no_warn)
@@ -318,7 +297,7 @@ def split_cell(mesh, half_edgeA, half_edgeB,\
         return split_edge
     else:
         if not(flag_terse):
-            print(f"Skipping split of cell {icell} at diagonal ({ivA},{ivB}).")
+            print("Skipping split of cell {icell} at diagonal ({ivA},{ivB}).")
 
         return None
 
@@ -353,61 +332,60 @@ def prompt_and_split_cells(mesh, flag_terse, flag_no_warn):
 
     cell_list = get_cells_with_more_than_three_vertices(mesh, MAX_NUM)
 
-    if (len(cell_list) == 0):
-        if not(flag_no_warn):
+    if len(cell_list) == 0:
+        if not flag_no_warn:
             print("All cells are triangle. No cells can be split.")
         return
 
     print_cells_with_more_than_three_vertices(MAX_NUM, cell_list)
     print()
 
-    while(True):
-
+    while True:
         icell = int(input("Enter cell (-1 to end): "))
 
-        if (icell < 0):
+        if icell < 0:
             return
 
-        if (icell > mesh.MaxCellIndex()):
-            print(f"No cell has index {icell}.")
-            print(f"  Maximum cell index: {mesh.MaxCellIndex()}")
+        if icell > mesh.MaxCellIndex():
+            print("No cell has index {:d}.".format(icell))
+            print("  Maximum cell index: {:d}".format(mesh.MaxCellIndex()))
             continue
 
         cell = mesh.Cell(icell)
-        if (cell is None):
-            print(f"No cell has index {icell}.")
+        if cell is None:
+            print("No cell has index {:d}.".format(icell))
             print()
             continue
 
-        if (cell.NumVertices() <= THREE):
-            print(f"Cell {icell} has fewer than four vertices and cannot be split.")
+        if cell.NumVertices() <= THREE:
+            print("Cell {:d} has fewer than four vertices and cannot be split.".format(icell))
             print()
             continue
 
         half_edge = cell.HalfEdge()
-        sys.stdout.write(f"Vertices in cell {icell}:")
-        for k in range(0,cell.NumVertices()):
-            sys.stdout.write(f"  {half_edge.FromVertexIndex()}")
+        sys.stdout.write("Vertices in cell {:d}:".format(icell))
+        for k in range(0, cell.NumVertices()):
+            sys.stdout.write("  {:d}".format(half_edge.FromVertexIndex()))
             half_edge = half_edge.NextHalfEdgeInCell()
         sys.stdout.write("\n")
 
         while True:
             input_list = input("Enter two distinct vertex indices (-1 to end): ").split()
-            if (len(input_list) >= 2):
+            if len(input_list) >= 2:
                 ivA = int(input_list[0])
                 ivB = int(input_list[1])
                 break
-            elif (len(input_list) == 1):
+            elif len(input_list) == 1:
                 ivA = int(input_list[0])
-                if (ivA < 0):
+                if ivA < 0:
                     return
                 ivB = int(input("Enter a second vertex index (-1 to end):"))
                 break
 
-        if (ivA < 0) or (ivB < 0):
+        if ivA < 0 or ivB < 0:
             return
 
-        if (ivA == ivB):
+        if ivA == ivB:
             print()
             print("Vertices are not distinct. Start again.")
             print()
@@ -417,31 +395,29 @@ def prompt_and_split_cells(mesh, flag_terse, flag_no_warn):
         half_edgeB = None
         half_edge = cell.HalfEdge()
         for k in range(0, cell.NumVertices()):
-            if (half_edge.FromVertexIndex() == ivA):
+            if half_edge.FromVertexIndex() == ivA:
                 half_edgeA = half_edge
-            if (half_edge.FromVertexIndex() == ivB):
+            if half_edge.FromVertexIndex() == ivB:
                 half_edgeB = half_edge
 
             half_edge = half_edge.NextHalfEdgeInCell()
 
-        if (half_edgeA is None) or (half_edgeB is None):
+        if half_edgeA is None or half_edgeB is None:
             print()
-            print(f"Vertices are not in cell {icell}.")
+            print("Vertices are not in cell {:d}.".format(icell))
             print("Start again.")
             print()
             continue
 
-        if (half_edgeA.ToVertexIndex() == ivB) or\
-            (half_edgeB.ToVertexIndex() == ivA):
-            print ()
-            print(f"({ivA},{ivB}) is a cell edge, not a cell diagaonal.")
+        if half_edgeA.ToVertexIndex() == ivB or half_edgeB.ToVertexIndex() == ivA:
+            print()
+            print("({:d},{:d}) is a cell edge, not a cell diagaonal.".format(ivA, ivB))
             print("  Vertices must not be adjacent.")
             print("Start again.")
             print()
             continue
 
-        split_cell\
-            (mesh, half_edgeA, half_edgeB, flag_terse, flag_no_warn, True)
+        split_cell(mesh, half_edgeA, half_edgeB, flag_terse, flag_no_warn, True)
 
         print()
 
@@ -512,7 +488,6 @@ def split_all_cells(mesh, flag_terse, flag_no_warn):
 
 
 # *** Join cell routines ***
-
 def join_two_cells(mesh, half_edge, flag_terse, flag_no_warn, flag_check):
     half_edgeX = half_edge.NextHalfEdgeAroundEdge()
     icell = half_edge.CellIndex()
@@ -525,12 +500,12 @@ def join_two_cells(mesh, half_edge, flag_terse, flag_no_warn, flag_check):
 
     if flag:
         if not(flag_terse):
-            print(f"Joining cell {icell} to cell {icellX} by deleting edge (" +\
+            print("Joining cell {icell} to cell {icellX} by deleting edge (" +
                     half_edge.EndpointsStr(",") + ").")
 
         half_edgeB = mesh.JoinTwoCells(half_edge.Index())
         if (half_edgeB is None):
-            print(f"Join of cell {icell} to cell {icellX} failed.")
+            print("Join of cell {icell} to cell {icellX} failed.")
         else:
             if (flag_check):
                 check_mesh(mesh, flag_no_warn)
@@ -538,7 +513,7 @@ def join_two_cells(mesh, half_edge, flag_terse, flag_no_warn, flag_check):
         return
     else:
         if not(flag_terse):
-            print(f"Skipping join of cell {icell} with cell {icellX}.");
+            print("Skipping join of cell {icell} with cell {icellX}.");
 
 
 ## Prompt and join cells.
@@ -625,14 +600,14 @@ def check_oriented_manifold(mesh, flag_no_warn):
     if flag_orientation:
         if flag_non_manifold_vertex:
             if not(flag_no_warn):
-                sys.stderr.write(f"Warning: Non-manifold vertex {iv}.")
+                sys.stderr.write("Warning: Non-manifold vertex {iv}.")
 
             return False
     else:
         if flag_non_manifold_vertex:
             if not(flag_no_warn):
                 sys.stderr.write\
-                    (f"Warning: Non-manifold vertex or inconsistent orientations in cells incident on vertex {iv}.\n")
+                    ("Warning: Non-manifold vertex or inconsistent orientations in cells incident on vertex {iv}.\n")
         else:
             sys.stderr.write\
                 ("Warning: Inconsistent orientation of cells incident on edge (" +\
@@ -711,7 +686,7 @@ def check_edge_collapse(mesh, half_edge, flag_no_warn):
     if mesh.IsIsolatedTriangle(icell):
         if not(flag_no_warn):
             print("Collapsing edge(" + half_edge.EndpointsStr(",") +\
-                    f") will delete isolated cell {icell}.")
+                    ") will delete isolated cell {icell}.")
 
         return_flag = False
 
@@ -745,15 +720,15 @@ def check_split_cell(mesh, half_edgeA, half_edgeB, flag_no_warn):
 
         if not(flag_no_warn):
             if flag_cell_edge:
-                print(f"({ivA},{ivB}) is a cell edge, not a cell diagonal.")
+                print("({ivA},{ivB}) is a cell edge, not a cell diagonal.")
             else:
-                print(f"Illegal split of cell {icell} with diagonal ({ivA}{ivB}).")
+                print("Illegal split of cell {icell} with diagonal ({ivA}{ivB}).")
         return_flag = False;
 
     if not(half_edgeC is None) and not(flag_cell_edge):
         if not(flag_no_warn):
             sys.stdout.write\
-                (f"Splitting cell {icell} with diagonal ({ivA},{ivB})");
+                ("Splitting cell {icell} with diagonal ({ivA},{ivB})");
             sys.stdout.write\
                 (" creates an edge incident on three or nmore cells.\n")
         return_flag = False
@@ -775,9 +750,9 @@ def check_join_cell(mesh, half_edge, flag_no_warn):
                 print("Only one cell contains edge (" +\
                     half_edge.EndpointsStr(",") + ").")
             elif not(half_edge.FromVertex().IsIncidentOnMoreThanTwoEdges()):
-                print(f"Half edge endpoint {half_edge.FromVertexIndex()} is incident on only two edges.")
+                print("Half edge endpoint {half_edge.FromVertexIndex()} is incident on only two edges.")
             elif not(half_edge.ToVertex().IsIncidentOnMoreThanTwoEdges()):
-                print(f"Half edge endpoint {half_edge.ToVertexIndex()} is incident on only two edges.")
+                print("Half edge endpoint {half_edge.ToVertexIndex()} is incident on only two edges.")
             elif not(half_edge is half_edgeX.NextHalfEdgeAroundEdge()):
                 print("More than two cells are incident on edge (" +\
                         half_edge.EndpointsStr(",") + ").")
@@ -787,7 +762,7 @@ def check_join_cell(mesh, half_edge, flag_no_warn):
                 num_shared_vertices =\
                     mesh.CountNumVerticesSharedByTwoCells(cell, cellX)
                 if (num_shared_vertices > TWO):
-                    print(f"Cells {cell.Index()} and {cellX.Index()} share {num_shared_vertices} vertices.")
+                    print("Cells {cell.Index()} and {cellX.Index()} share {num_shared_vertices} vertices.")
                 else:
                     print("Join of two cells incident on edge (" +\
                             half_edge.EndpointsStr(",") + ") is illegal.")
@@ -804,7 +779,7 @@ def reduce_checks_on_large_datasets\
     num_cells = mesh.NumCells()
     if (num_cells >= large_data_num_cells):
         if not(flag_no_warn):
-            print(f"Warning: Large data set with {num_cells} cells.")
+            print("Warning: Large data set with {num_cells} cells.")
             print("  Reducing checks (using -flag_reduce_checks.)")
 
         return True
@@ -847,7 +822,7 @@ def InitFlags():
 
 def parse_command_line(argv):
     global input_filename, output_filename
-    global flag_silent, flag_terse, flag_no_warn, flag_time
+    global flag_silent, flag_terse, flag_no_warn
     global flag_collapse_edges, flag_collapse_short_edges
     global flag_split_cells, flag_split_all_cells
     global flag_join_cells, flag_join_each_cell
@@ -856,7 +831,7 @@ def parse_command_line(argv):
     global flag_reduce_checks
 
     iarg = 1
-    while (iarg < len(argv) and argv[iarg][0] == '-'):
+    while iarg < len(argv) and argv[iarg][0] == '-':
         s = argv[iarg]
         if (s == "-collapse_edges"):
             flag_collapse_edges = True
@@ -866,7 +841,7 @@ def parse_command_line(argv):
             flag_split_edges = True
         elif (s == "-split_long_edges"):
             flag_split_long_edges = True
-        elif (s == "-split_cells"):
+        elif s == "-split_cells":
             flag_split_cells = True
         elif (s == "-split_all_cells"):
             flag_split_all_cells = True
@@ -890,15 +865,13 @@ def parse_command_line(argv):
             flag_terse = True
         elif (s == "-no_warn"):
             flag_no_warn = True
-        elif (s == "-time"):
-            flag_time = True
         elif (s == "-h"):
             help()
         else:
             sys.stderr.write("Usage error. Option " + s + " is undefined.\n")
-            usage_error();
+            usage_error()
 
-        iarg = iarg+1
+        iarg = iarg + 1
 
     if (iarg >= len(argv) or iarg+2 < len(argv)):
         usage_error()
@@ -912,7 +885,6 @@ def parse_command_line(argv):
 ## Prompt for mesh edge.
 #  - Return None if user enters -1.
 def prompt_for_mesh_edge(mesh, flag_only_internal):
-
     while (True):
         iv0 = int(input("Enter vertex (-1 to end): "))
         if (iv0 < 0):
@@ -922,17 +894,17 @@ def prompt_for_mesh_edge(mesh, flag_only_internal):
         if not(flag):
             if not(error_msg is None):
                 print(error_msg)
-            continue;
+            continue
 
         v0 = mesh.Vertex(iv0)
 
         if (v0.NumHalfEdgesFrom() == 0):
-            print(f"Vertex {iv0} is not incident on any cell.")
+            print("Vertex {iv0} is not incident on any cell.")
             continue
 
         if (flag_only_internal):
             num_internal_half_edges_from = 0
-            sys.stdout.write(f"Internal half edges from {iv0}:")
+            sys.stdout.write("Internal half edges from {iv0}:")
             for k in range(0,v0.NumHalfEdgesFrom()):
                 half_edge = v0.KthHalfEdgeFrom(k)
                 if not(half_edge.IsBoundary()):
@@ -943,35 +915,34 @@ def prompt_for_mesh_edge(mesh, flag_only_internal):
             print()
 
             if (num_internal_half_edges_from == 0):
-                print(f"No internal half edges from {iv0}.")
+                print("No internal half edges from {iv0}.")
                 print("Start again.")
                 print()
         else:
-            sys.stdout.write(f"Half edges from {iv0}:")
-            for k in range(0,v0.NumHalfEdgesFrom()):
+            sys.stdout.write("Half edges from {iv0}:")
+            for k in range(0, v0.NumHalfEdgesFrom()):
                 half_edge = v0.KthHalfEdgeFrom(k)
                 sys.stdout.write("  (" + half_edge.EndpointsStr(",") + ")")
             print()
 
-        iv1 = int(input(f"Enter vertex adjacent to {iv0} (-1 to end): "))
+        iv1 = int(input("Enter vertex adjacent to {iv0} (-1 to end): "))
 
-        if (iv1 < 0):
+        if iv1 < 0:
             return None
 
         flag, error_msg = mesh.CheckVertexIndex(iv1)
-        if not(flag):
+        if not flag:
             if not(error_msg is None):
                 print(error_msg)
-            continue;
+            continue
 
         half_edge0 = v0.FindIncidentHalfEdge(iv1)
-        if (half_edge0 is None):
-            print(f"Mesh does not have a half edge ({iv0},{iv1}).")
-            continue;
+        if half_edge0 is None:
+            print("Mesh does not have a half edge ({iv0},{iv1}).")
+            continue
 
-        if (flag_only_internal and half_edge0.IsBoundary()):
-            print("Half edge (" + half_edge0.EndpointsStr(",") +\
-                    ") is a boundary half edge.")
+        if flag_only_internal and half_edge0.IsBoundary():
+            print("Half edge (" + half_edge0.EndpointsStr(",") + ") is a boundary half edge.")
             print("Start again.")
             print()
             continue
@@ -982,17 +953,13 @@ def prompt_for_mesh_edge(mesh, flag_only_internal):
 ## Print cells with more than three vertices.
 def print_cells_with_more_than_three_vertices(max_num, cell_list):
     sys.stdout.write("Cells with more than three vertices")
-    if (len(cell_list) >= max_num):
+    if len(cell_list) >= max_num:
         sys.stdout.write(" (partial list)")
     sys.stdout.write(": ")
-    for i in range(0,len(cell_list)):
-        sys.stdout.write(f"  {cell_list[i]}")
+    for i in range(0, len(cell_list)):
+        sys.stdout.write("  " + str(cell_list[i]))
     sys.stdout.write("\n")
 
-
-## Print timeX in seconds.
-def print_time(label, timeX):
-    print(label + "{:.4f}".format(timeX) + " seconds")
 
 ## Print mesh information, such as number of vertices, edges, cells
 #    min and max edge lengths and cell angles.
@@ -1022,13 +989,13 @@ def print_mesh_info(mesh):
     print("  Number of mesh triangles: ", num_triangles)
     print("  Number of mesh quadrilaterals: ", num_quads)
     print("  Number of mesh cells with > 4 vertices: ", num_large_cells)
-    print(f"Min edge length: {sqrt(minL_squared):.4f}")
-    print(f"Max edge length: {sqrt(maxL_squared):.4f}")
-    print(f"Min cell edge length ratio: {sqrt(min_ratio_squared):.4f}")
-    print(f"Minimum cell angle: {math.degrees(acos(cos_minA)):.4f}")
-    print(f"Minimum cell angle: {math.degrees(acos(cos_maxA)):.4f}")
+    print("Min edge length: {:.4f}".format(sqrt(minL_squared)))
+    print("Max edge length: {:.4f}".format(sqrt(maxL_squared)))
+    print("Min cell edge length ratio: {:.4f}".format(sqrt(min_ratio_squared)))
+    print("Minimum cell angle: {:.4f}".format(math.degrees(acos(cos_minA))))
+    print("Minimum cell angle: {:.4f}".format(math.degrees(acos(cos_maxA))))
 
-    if (not(flag_non_manifoldV) and not(flag_non_manifoldE) and is_oriented):
+    if not flag_non_manifoldV and not flag_non_manifoldE and is_oriented:
         print("Mesh is an oriented manifold.")
     else:
         print("Mesh is non-manifold or has inconsistent cell orientations.")
@@ -1042,7 +1009,7 @@ def usage_msg(out):
     out.write("  [-split_cells] [-split_all_cells] [-split_long_edges_cells]\n")
     out.write("  [-join_cells] [-join_each_cell]\n")
     out.write("  [-allow_non_manifold] [-fail_on_non_manifold]\n")
-    out.write("  [-s | -terse] [-no_warn] [-reduce_checks] [-time] [-h]\n")
+    out.write("  [-s | -terse] [-no_warn] [-reduce_checks] [-h]\n")
 
 def usage_error():
     usage_msg(sys.stderr)

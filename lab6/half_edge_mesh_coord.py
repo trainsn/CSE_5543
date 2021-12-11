@@ -31,7 +31,7 @@ from math import sqrt
 #  @param coord1[] Python list (not a numpy array).
 #  @pre len(coord1) == len(coord0).
 def compute_midpoint(coord0, coord1, coord2):
-    for ic in range(0,len(coord0)):
+    for ic in range(0, len(coord0)):
         coord2[ic] = (coord0[ic] + coord1[ic])/2.0
 
     return
@@ -45,7 +45,7 @@ def compute_squared_distance(coord0, coord1):
     c0 = np.array(coord0)
     c1 = np.array(coord1)
     c2 = c0-c1
-    return np.inner(c2,c2)
+    return np.inner(c2, c2)
 
 ## Return normalized vector and magnitude of the original vector.
 #  - If the vector has magnitude 0, returns vector (1,0,0,...) and 0.
