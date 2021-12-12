@@ -200,7 +200,7 @@ class CELL_DCMT_BASE(half_edge_mesh.CELL_BASE):
         half_edge = self.HalfEdge()
 
         flag_found = False
-        for i in range(0,self.NumVertices()):
+        for i in range(0, self.NumVertices()):
 
             cos_angle, flag_zero = half_edge.ComputeCosAngleAtFromVertex()
 
@@ -1089,7 +1089,7 @@ class HALF_EDGE_MESH_DCMT_BASE(half_edge_mesh.HALF_EDGE_MESH_BASE):
         ihalf_edge_min = 0;
         ihalf_edge_max = 0;
 
-        flag_found = False;
+        flag_found = False
         for icell in self.CellIndices():
             cell = self.Cell(icell);
             if (cell is None):
