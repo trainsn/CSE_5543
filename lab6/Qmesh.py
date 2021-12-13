@@ -33,27 +33,13 @@ def main(argv):
         split_all_cells(mesh)
         old_triangles = mesh.NumCells()
 
-        iteration = 0
-        while True:
+        for iteration in range(10):
             join_triangle_with_large_angle(mesh)
             split_all_cells(mesh)
             collapse_shortest_edge_for_small_angle_cell(mesh)
             if old_triangles == mesh.NumCells():
                 break
-            old_triangles = mesh.NumCells()
-            iteration += 1
-            print("finish stage 1 iter {:d}".format(iteration))
-            if iteration >= 5:
-                break
-
-        iteration = 0
-        while True:
-            split_longest_edge_for_large_angle_cell(mesh)
-            split_all_cells(mesh)
-            iteration += 1
-            print("finish stage 1 iter {:d}".format(iteration))
-            if iteration >= 5:
-                break
+            print("finish iter {:d}".format(iteration))
 
         passed_check = check_mesh(mesh)
         print("Mesh data structure passed check.")
